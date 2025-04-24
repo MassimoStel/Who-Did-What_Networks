@@ -318,7 +318,7 @@ def plot_graph(G):
             horizontalalignment="center",
             verticalalignment="center",
             bbox=bbox_props,
-            fontsize=10,
+            fontsize=20,
         )
 
     # Add column labels
