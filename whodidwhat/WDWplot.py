@@ -7,7 +7,7 @@ from whodidwhat.nlp_utils import compute_valence
 from whodidwhat.analytics import add_node_with_type, svo_to_graph
 
 
-def plot_svo_graph(df, subject_filter=None, object_filter=None):
+def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10):
     """
     Plot a graph of SVO data.
 
@@ -16,10 +16,10 @@ def plot_svo_graph(df, subject_filter=None, object_filter=None):
         subject_filter (str): A subject to filter the graph by.
     """
     G = svo_to_graph(df, subject_filter=subject_filter, object_filter=object_filter)
-    plot_graph(G)
+    plot_graph(G, custom_font)
 
 
-def plot_graph(G):
+def plot_graph(G, custom_font):
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyArrowPatch
@@ -318,7 +318,7 @@ def plot_graph(G):
             horizontalalignment="center",
             verticalalignment="center",
             bbox=bbox_props,
-            fontsize=20,
+            fontsize=custom_font,
         )
 
     # Add column labels
