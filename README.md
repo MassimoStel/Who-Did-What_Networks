@@ -1,7 +1,7 @@
 # Agent-did-Target Networks
 
 <p align="center">
-  <img src="target-event-agent logo.png" alt="TEA" width="300"/>
+  <img src="tea logo.png" alt="TEA" width="300"/>
 </p>
 
 A Python library that implements a novel framework to measure bias through its actors, actions and consequences in English.
