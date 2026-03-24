@@ -1,4 +1,4 @@
-# Agent-did-Target Networks
+# Target-Event-Agent Networks
 
 <p align="center">
   <img src="tea logo.png" alt="TEA" width="300"/>
