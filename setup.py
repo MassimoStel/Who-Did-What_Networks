@@ -13,8 +13,8 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
     requirements = f.read().splitlines()
 
 setup(
-    name="WhoDidWhat",
-    url="https://github.com/RiccardoImprota/Who-did-What-Networks",
+    name="teanets",
+    url="https://github.com/RiccardoImprota/Agent-did-Target-Networks",
     author="Riccardo Improta",
     author_email="riccardo.imp@gmail.com",
     packages=find_packages(),

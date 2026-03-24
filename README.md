@@ -1,4 +1,4 @@
-# Who-did-What Networks
+# Agent-did-Target Networks
 
 <p align="center">
   <img src="target-event-agent logo.png" alt="TEA" width="300"/>
@@ -9,11 +9,11 @@ A Python library that implements a novel framework to measure bias through its a
 
 ## Description
 Target-Event-Agent cognitive networks are a novel framework to measure bias through its actors, actions and consequences. These semantic/syntactic multilayer networks are composed of 3 layers:
-- subjects/actors (WHO)
-- objects/actions (DID)
-- verbs/consequences (WHAT)
+- **Agent**: Subjects/actors (Who)
+- **Event**: Verbs/actions (Did)
+- **Target**: Objects/consequences (What)
 
-Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “who did what” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such through EmoAtlas can give general results about the overall context of biased perceptions, Target-Event-Agent networks can complement TFMNs by providing a focus on actors, actions and consequences.
+Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “target event agent” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such through EmoAtlas can give general results about the overall context of biased perceptions, Target-Event-Agent networks can complement TFMNs by providing a focus on actors, actions and consequences.
 
 This framework only works for the English language.
 
@@ -22,8 +22,26 @@ This framework only works for the English language.
   <img src="TEA Sentence.jpg"/>
 </p>
 
+---
 
+## Methodological Revisions
 
+### 1. Passive Voice Handling
+The TEA library correctly distinguishes between the semantic agent and the grammatical subject in passive constructions. 
+- **Passive WITH Agent** (*"The patient was helped by the doctor"*): The agent (*doctor*) is correctly identified as the **Agent**, while the patient (*patient*) is mapped to the **Target**.
+- **Passive WITHOUT Agent** (*"The window was broken"*): If no agent is present, the patient remains in the **Agent** position as the best available approximation.
+
+| Sentence | Agent (Who) | Target (What) |
+|:---------|:------------|:--------------|
+| *The patient was helped by the doctor.* | doctor | patient |
+| *The report was reviewed.* | report | None |
+
+### 2. SVO Extraction Validation
+To ensure accuracy, we validated the extraction logic against a **Gold Standard** of 100 exemplary sentences (`data/gold_standard_svo.csv`) covering active/passive voices, imperatives, and complex clauses.
+- **Metric-based Evaluation**: We report Precision, Recall, and F1 scores for each component (Agent, Event, Target).
+- **Benchmark Driven**: The implementation is continuously tested against manually annotated data to avoid regressions.
+
+---
 ### Features
 
 - **SVO Extraction**: Extracts subjects (who), verbs(did), and objects(what) from sentences.
@@ -64,24 +82,24 @@ svo = tea.extract_svos_from_text(text)
 display(svo)
 ```
 
-| Node 1   | TEA   | Node 2   | WDW2   | Hypergraph                                                |   Semantic-Syntactic |   svo_id |
+| Node 1   | TEA   | Node 2   | TEA2   | Hypergraph                                                |   Semantic-Syntactic |   svo_id |
 |:---------|:------|:---------|:-------|:----------------------------------------------------------|---------------------:|---------:|
-| Mark     | Who   | go       | Did    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
-| Rose     | Who   | go       | Did    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
-| go       | Did   | to park  | What   | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
-| Mark     | Who   | Rose     | Who    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| Mark     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| Rose     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| go       | Event   | to park  | Target   | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| Mark     | Agent   | Rose     | Agent    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
 
 
 ```
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
-  <img src="WDWMarkRose.jpg" width="700"/>
+  <img src="TEAMarkRose.jpg" width="700"/>
 </p>
 
 ### Starting Guide
 
-You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Who-did-What-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
+You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Agent-did-Target-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
 
 The starting guides features a more complete description of the package and an usage guide.
 

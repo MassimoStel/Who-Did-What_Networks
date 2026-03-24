@@ -116,9 +116,9 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": subj,
-                        "TEA": "Who",
+                        "TEA": "Agent",
                         "Node 2": verb,
-                        "WDW2": "Did",
+                        "TEA2": "Event",
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
@@ -132,9 +132,9 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": verb,
-                        "TEA": "Did",
+                        "TEA": "Event",
                         "Node 2": obj,
-                        "WDW2": "What",
+                        "TEA2": "Target",
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
@@ -147,9 +147,9 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": subj1,
-                        "TEA": "Who",
+                        "TEA": "Agent",
                         "Node 2": subj2,
-                        "WDW2": "Who",
+                        "TEA2": "Agent",
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
@@ -162,9 +162,9 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": obj1,
-                        "TEA": "What",
+                        "TEA": "Target",
                         "Node 2": obj2,
-                        "WDW2": "What",
+                        "TEA2": "Target",
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
@@ -189,9 +189,9 @@ def extract_svos(doc):
             data_rows.append(
                 {
                     "Node 1": subj1,
-                    "TEA": "Who",
+                    "TEA": "Agent",
                     "Node 2": subj2,
-                    "WDW2": "Who",
+                    "TEA2": "Agent",
                     "Hypergraph": "N/A",
                     "Semantic-Syntactic": 1,
                     "svo_id": "N/A",
@@ -205,9 +205,9 @@ def extract_svos(doc):
             data_rows.append(
                 {
                     "Node 1": obj1,
-                    "TEA": "What",
+                    "TEA": "Target",
                     "Node 2": obj2,
-                    "WDW2": "What",
+                    "TEA2": "Target",
                     "Hypergraph": "N/A",
                     "Semantic-Syntactic": 1,
                     "svo_id": "N/A",
@@ -221,7 +221,7 @@ def extract_svos(doc):
             "Node 1",
             "TEA",
             "Node 2",
-            "WDW2",
+            "TEA2",
             "Hypergraph",
             "Semantic-Syntactic",
             "svo_id",
@@ -321,10 +321,10 @@ def get_verb_subjects(verb):
 
     PASSIVE VOICE HANDLING (fix Punto 13):
       - Passivo con agente ("X was Vd by Y"):
-          Y (→ pobj dell'agent) è il soggetto SEMANTICO → va in Who
-          X (nsubjpass) è il paziente → NON va in Who (andrà in What via get_verb_objects)
+          Y (→ pobj dell'agent) è il soggetto SEMANTICO → va in Agent
+          X (nsubjpass) è il paziente → NON va in Agent (andrà in Target via get_verb_objects)
       - Passivo senza agente ("X was Vd"):
-          Nessun agente identificabile; X (nsubjpass) rimane in Who
+          Nessun agente identificabile; X (nsubjpass) rimane in Agent
           come miglior approssimazione disponibile.
       - Passivo coordinato ("X was written and reviewed by Y"):
           L'agent può essere figlio del verbo conj, non del ROOT.
@@ -345,7 +345,7 @@ def get_verb_subjects(verb):
         nsubjs = [child for child in verb.children if child.dep_ == "nsubj"]
         if nsubjs:
             for subj in nsubjs:
-                if subj.lower_ in {"who", "which", "that", "whom", "whose"}:
+                if subj.lower_ in {"target", "which", "that", "whom", "whose"}:
                     # Use the modified noun as the subject
                     modified_noun = verb.head
                     main_part, prep_parts = get_compound_parts(
@@ -400,11 +400,11 @@ def get_verb_subjects(verb):
                     break
 
         if agent_pobj is not None:
-            # Passive WITH agent: agent → Who; nsubjpass → What (handled by get_verb_objects)
+            # Passive WITH agent: agent → Agent; nsubjpass → Target (handled by get_verb_objects)
             subjects.extend(extract_subjects(agent_pobj))
             return subjects
         else:
-            # Passive WITHOUT agent: nsubjpass stays in Who (best available approximation)
+            # Passive WITHOUT agent: nsubjpass stays in Agent (best available approximation)
             nsubjpass_tokens = [
                 child for child in verb.children
                 if child.dep_ in _nsubjpass_labels

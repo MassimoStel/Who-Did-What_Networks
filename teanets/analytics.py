@@ -9,24 +9,24 @@ import pandas as pd
 ################################################################################################
 
 
-def filter_svo_dataframe_by_tea(df, TEA, WDW2=None):
+def filter_svo_dataframe_by_tea(df, TEA, TEA2=None):
     """
-    Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'TEA' and 'WDW2' match the provided arguments.
+    Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'TEA' and 'TEA2' match the provided arguments.
 
-    This function specifically considers 'TEA' to be one of "Who", "Did", or "What". Synonyms of these terms are not taken into account.
+    This function specifically considers 'TEA' to be one of "Agent", "Event", or "Target". Synonyms of these terms are not taken into account.
 
-    If `WDW2` is set to None , we consider all edges of TEA.
+    If `TEA2` is set to None , we consider all edges of TEA.
 
 
 
     Parameters:
     df (pd.DataFrame): The SVO DataFrame to filter.
     TEA: The value to match in the 'TEA' column. Accepted values are:
-        - "Who"
-        - "Did"
-        - "What"
-    WDW2: The value to match in the 'WDW2' column.
-        - If `WDW2` is set to None , we consider all edges of TEA.
+        - "Agent"
+        - "Event"
+        - "Target"
+    TEA2: The value to match in the 'TEA2' column.
+        - If `TEA2` is set to None , we consider all edges of TEA.
 
 
 
@@ -35,7 +35,7 @@ def filter_svo_dataframe_by_tea(df, TEA, WDW2=None):
     """
 
     # Define valid TEA values in lowercase for case-insensitive comparison
-    valid_tea_values = {"who", "did", "what"}
+    valid_tea_values = {"target", "event", "agent"}
 
     # Normalize inputs to lowercase
     if not isinstance(TEA, str):
@@ -45,15 +45,15 @@ def filter_svo_dataframe_by_tea(df, TEA, WDW2=None):
     if TEA_normalized not in valid_tea_values:
         raise ValueError(f"TEA must be one of {valid_tea_values}. Provided: '{TEA}'")
 
-    if WDW2 is not None:
-        if not isinstance(WDW2, str):
+    if TEA2 is not None:
+        if not isinstance(TEA2, str):
             raise ValueError(
-                f"WDW2 must be a string or None. Provided type: {type(WDW2)}"
+                f"TEA2 must be a string or None. Provided type: {type(TEA2)}"
             )
-        WDW2_normalized = WDW2.lower()
+        WDW2_normalized = TEA2.lower()
         if WDW2_normalized not in valid_tea_values:
             raise ValueError(
-                f"WDW2 must be one of {valid_tea_values} or None. Provided: '{WDW2}'"
+                f"TEA2 must be one of {valid_tea_values} or None. Provided: '{TEA2}'"
             )
     else:
         WDW2_normalized = None
@@ -63,14 +63,14 @@ def filter_svo_dataframe_by_tea(df, TEA, WDW2=None):
         filtered_df = df[
             (
                 (df["TEA"].str.lower() == TEA_normalized)
-                | (df["WDW2"].str.lower() == TEA_normalized)
+                | (df["TEA2"].str.lower() == TEA_normalized)
             )
             & (df["Semantic-Syntactic"] == 0)
         ]
     else:
         filtered_df = df[
             (df["TEA"].str.lower() == TEA_normalized)
-            & (df["WDW2"].str.lower() == WDW2_normalized)
+            & (df["TEA2"].str.lower() == WDW2_normalized)
             & (df["Semantic-Syntactic"] == 0)
         ]
 
@@ -141,8 +141,8 @@ def export_subj(df):
     Extracts a set of all unique subjects from the DataFrame.
     Each element in the set is a tuple of (subject, valence).
     """
-    # Filter rows where TEA is 'Who' (indicative of subjects)
-    df_subjects = df[df["TEA"] == "Who"]
+    # Filter rows where TEA is 'Target' (indicative of subjects)
+    df_subjects = df[df["TEA"] == "Agent"]
     # Get unique subjects from 'Node 1'
     subjects = df_subjects["Node 1"].unique()
     # Compute valence and create a set of tuples
@@ -158,8 +158,8 @@ def export_obj(df):
     Extracts a set of all unique objects from the DataFrame.
     Each element in the set is a tuple of (object, valence).
     """
-    # Filter rows where WDW2 is 'What' (indicative of objects)
-    df_objects = df[df["WDW2"] == "What"]
+    # Filter rows where TEA2 is 'Agent' (indicative of objects)
+    df_objects = df[df["TEA2"] == "Target"]
     # Get unique objects from 'Node 2'
     objects = df_objects["Node 2"].unique()
     # Compute valence and create a set of tuples
@@ -175,9 +175,9 @@ def export_verb(df):
     Extracts a set of all unique verbs from the DataFrame.
     Each element in the set is a tuple of (verb, valence).
     """
-    # Verbs can be in 'Node 1' where TEA is 'Did' or in 'Node 2' where WDW2 is 'Did'
-    verbs_node1 = df[df["TEA"] == "Did"]["Node 1"]
-    verbs_node2 = df[df["WDW2"] == "Did"]["Node 2"]
+    # Verbs can be in 'Node 1' where TEA is 'Event' or in 'Node 2' where TEA2 is 'Event'
+    verbs_node1 = df[df["TEA"] == "Event"]["Node 1"]
+    verbs_node2 = df[df["TEA2"] == "Event"]["Node 2"]
     # Combine and get unique verbs
     verbs = pd.concat([verbs_node1, verbs_node2]).unique()
     # Compute valence and create a set of tuples
@@ -205,7 +205,7 @@ def add_node_with_type(G, node_id, label, node_type):
 def filter_subjects(df, subject_term):
     """
     Filters the DataFrame to keep rows where the 'svo_id' corresponds to entries
-    where 'Node 1' contains the subject term and 'TEA' indicates a subject ('Who').
+    where 'Node 1' contains the subject term and 'TEA' indicates a subject ('Target').
 
     Parameters:
     - df: The input DataFrame.
@@ -214,11 +214,11 @@ def filter_subjects(df, subject_term):
     Returns:
     - A filtered DataFrame containing only rows with matching 'svo_id's.
     """
-    # Identify 'svo_id's where 'Node 1' contains the subject term and 'TEA' is 'Who'
+    # Identify 'svo_id's where 'Node 1' contains the subject term and 'TEA' is 'Target'
     subject_svo_ids = set(
         df[
             (df["Node 1"].str.contains(subject_term, case=False, na=False))
-            & (df["TEA"] == "Who")
+            & (df["TEA"] == "Agent")
         ]["svo_id"].unique()
     )
 
@@ -230,7 +230,7 @@ def filter_subjects(df, subject_term):
 def filter_objects(df, object_term):
     """
     Filters the DataFrame to keep rows where the 'svo_id' corresponds to entries
-    where 'Node 2' contains the object term and 'TEA' indicates an object ('What').
+    where 'Node 2' contains the object term and 'TEA' indicates an object ('Agent').
 
     Parameters:
     - df: The input DataFrame.
@@ -239,11 +239,11 @@ def filter_objects(df, object_term):
     Returns:
     - A filtered DataFrame containing only rows with matching 'svo_id's.
     """
-    # Identify 'svo_id's where 'Node 12' contains the subject term and 'TEA' is 'What'
+    # Identify 'svo_id's where 'Node 12' contains the subject term and 'TEA' is 'Agent'
     object_svo_ids = set(
         df[
             (df["Node 2"].str.contains(object_term, case=False, na=False))
-            & (df["TEA"] == "What")
+            & (df["TEA"] == "Target")
         ]["svo_id"].unique()
     )
     # Filter the DataFrame to only include rows with these 'svo_id's
@@ -268,16 +268,16 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
         node1 = row["Node 1"]
         wdw1 = row["TEA"]
         node2 = row["Node 2"]
-        wdw2 = row["WDW2"]
+        tea2 = row["TEA2"]
         hypergraph = row["Hypergraph"]
         sem_synt = row["Semantic-Syntactic"]
 
-        # Determine node types based on TEA and WDW2
+        # Determine node types based on TEA and TEA2
         node1_type = (
-            "subject" if wdw1 == "Who" else "verb" if wdw1 == "Did" else "object"
+            "subject" if wdw1 == "Agent" else "verb" if wdw1 == "Event" else "object"
         )
         node2_type = (
-            "subject" if wdw2 == "Who" else "verb" if wdw2 == "Did" else "object"
+            "subject" if tea2 == "Agent" else "verb" if tea2 == "Event" else "object"
         )
 
         # Create unique node IDs to differentiate between subjects, verbs, and objects
@@ -329,46 +329,46 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
 def wdw_weighted_degree_centrality(
     df,
     TEA,
-    WDW2=None,
+    TEA2=None,
     remove_same_type=False,
     remove_node_type=None,
 ):
     """
-    Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'TEA' and 'WDW2' match the provided arguments.
+    Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'TEA' and 'TEA2' match the provided arguments.
 
-    This function specifically considers 'TEA' to be one of "Who", "Did", or "What". Synonyms of these terms are not taken into account.
+    This function specifically considers 'TEA' to be one of "Agent", "Event", or "Target". Synonyms of these terms are not taken into account.
 
-    If `WDW2` is set to None , we consider all edges of TEA.
+    If `TEA2` is set to None , we consider all edges of TEA.
 
 
 
     Parameters:
     df (pd.DataFrame): The SVO DataFrame to filter.
     TEA: The value to match in the 'TEA' column. Accepted values are:
-        - "Who"
-        - "Did"
-        - "What"
-    WDW2: The value to match in the 'WDW2' column.
-        - If `WDW2` is set to None , we consider all edges of TEA.
+        - "Agent"
+        - "Event"
+        - "Target"
+    TEA2: The value to match in the 'TEA2' column.
+        - If `TEA2` is set to None , we consider all edges of TEA.
 
-    remove_same_type (bool): If True, removes edges between nodes of the same type (what-what, who-who).
-    remove_node_type (str): If set to "What" or "Who", removes all rows containing that node type.
+    remove_same_type (bool): If True, removes edges between nodes of the same type (target-target, agent-agent).
+    remove_node_type (str): If set to "Target" or "Agent", removes all rows containing that node type.
 
     Returns:
     pd.DataFrame: The filtered DataFrame.
     """
 
     # First filter the DataFrame based on node_type parameter
-    if remove_node_type in ["What", "Who"]:
+    if remove_node_type in ["Target", "Agent"]:
         df = df[
-            ~df["TEA"].isin([remove_node_type]) & ~df["WDW2"].isin([remove_node_type])
+            ~df["TEA"].isin([remove_node_type]) & ~df["TEA2"].isin([remove_node_type])
         ]
 
-    filtered_df = filter_svo_dataframe_by_tea(df, TEA, WDW2)
+    filtered_df = filter_svo_dataframe_by_tea(df, TEA, TEA2)
 
     if remove_same_type:
-        # Keep only rows where TEA and WDW2 are different
-        filtered_df = filtered_df[filtered_df["TEA"] != filtered_df["WDW2"]]
+        # Keep only rows where TEA and TEA2 are different
+        filtered_df = filtered_df[filtered_df["TEA"] != filtered_df["TEA2"]]
 
     G = svo_to_graph(filtered_df)
 
@@ -385,11 +385,11 @@ def wdw_weighted_degree_centrality(
     )
 
     # Filter the DataFrame to include only subjects, verbs, or objects
-    if TEA == "Who":
+    if TEA == "Agent":
         df_filtered = df[df["node"].str.endswith("_s")].copy()
-    elif TEA == "Did" and WDW2 == None:
+    elif TEA == "Event" and TEA2 == None:
         df_filtered = df[df["node"].str.endswith("_v")].copy()
-    elif WDW2 == "What":
+    elif TEA2 == "Target":
         df_filtered = df[df["node"].str.endswith("_o")].copy()
     # Remove the last character(s) from the node names
     df_filtered["node"] = df_filtered["node"].str.replace("(_s|_v|_o)$", "", regex=True)
@@ -407,13 +407,13 @@ def wdw_degree_centrality_overview(df):
     """
 
     combinations = [
-        ["Subject", "Who", "Did"],
-        ["Verb", "Did", None],
-        ["Object", "Did", "What"],
+        ["Subject", "Agent", "Event"],
+        ["Verb", "Event", None],
+        ["Object", "Event", "Target"],
     ]
 
-    for svo, TEA, WDW2 in combinations:
+    for svo, TEA, TEA2 in combinations:
 
         print(f"Degree centrality for {svo}")
-        display(wdw_weighted_degree_centrality(df, TEA, WDW2).head(20))
+        display(wdw_weighted_degree_centrality(df, TEA, TEA2).head(20))
         print("############################################ \n")

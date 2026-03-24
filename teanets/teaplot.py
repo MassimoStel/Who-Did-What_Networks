@@ -7,7 +7,7 @@ from teanets.nlp_utils import compute_valence
 from teanets.analytics import add_node_with_type, svo_to_graph
 
 
-def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10):
+def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10, filename=None):
     """
     Plot a graph of SVO data.
 
@@ -16,10 +16,10 @@ def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10
         subject_filter (str): A subject to filter the graph by.
     """
     G = svo_to_graph(df, subject_filter=subject_filter, object_filter=object_filter)
-    plot_graph(G, custom_font)
+    plot_graph(G, custom_font, filename)
 
 
-def plot_graph(G, custom_font):
+def plot_graph(G, custom_font, filename=None):
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyArrowPatch
@@ -325,21 +325,21 @@ def plot_graph(G, custom_font):
     plt.text(
         -2,
         max(pos.values(), key=lambda x: x[1])[1] + 2.0,
-        "WHO",
+        "AGENT",
         fontsize=20,
         ha="center",
     )
     plt.text(
         0,
         max(pos.values(), key=lambda x: x[1])[1] + 2.0,
-        "DID",
+        "EVENT",
         fontsize=20,
         ha="center",
     )
     plt.text(
         2,
         max(pos.values(), key=lambda x: x[1])[1] + 2.0,
-        "WHAT",
+        "TARGET",
         fontsize=20,
         ha="center",
     )
@@ -354,4 +354,6 @@ def plot_graph(G, custom_font):
 
     plt.axis("off")
     plt.tight_layout()
+    if filename:
+        plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.show()
