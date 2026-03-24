@@ -319,6 +319,17 @@ def get_verb_subjects(verb):
 
     For compound nouns, each component is included separately.
 
+    PASSIVE VOICE HANDLING (fix Punto 13):
+      - Passivo con agente ("X was Vd by Y"):
+          Y (→ pobj dell'agent) è il soggetto SEMANTICO → va in Who
+          X (nsubjpass) è il paziente → NON va in Who (andrà in What via get_verb_objects)
+      - Passivo senza agente ("X was Vd"):
+          Nessun agente identificabile; X (nsubjpass) rimane in Who
+          come miglior approssimazione disponibile.
+      - Passivo coordinato ("X was written and reviewed by Y"):
+          L'agent può essere figlio del verbo conj, non del ROOT.
+          Controlliamo anche i figli dei conj di tipo VERB.
+
     Args:
         verb: The verb token.
 
@@ -350,21 +361,63 @@ def get_verb_subjects(verb):
             subjects.append((main_part, prep_parts))
         return subjects
 
-    # Check for agents (e.g., "by John")
-    agents = [child for child in verb.children if child.dep_ == "agent"]
-    if agents:
-        for agent in agents:
-            agent_pobjs = [
-                grandchild for grandchild in agent.children if grandchild.dep_ == "pobj"
-            ]
-            for agent_pobj in agent_pobjs:
-                subjects.extend(extract_subjects(agent_pobj))
-        if subjects:
-            return subjects  # Use agents as subjects
+    # ── PASSIVE VOICE HANDLING ────────────────────────────────────────────────
+    # Determine if this is a passive construction (nsubjpass or auxpass present)
+    _nsubjpass_labels = {"nsubjpass", "nsubj:pass"}
+    _auxpass_labels   = {"auxpass",   "aux:pass"}
+    children_deps = {child.dep_ for child in verb.children}
+    is_passive = bool(
+        (children_deps & _nsubjpass_labels) or
+        (children_deps & _auxpass_labels)
+    )
 
-    # If no agent, use nsubjpass or nsubj
+    if is_passive:
+        # Look for agent: first in direct children, then in conj verbs
+        agent_pobj = None
+
+        for child in verb.children:
+            if child.dep_ == "agent":
+                for gc in child.children:
+                    if gc.dep_ == "pobj":
+                        agent_pobj = gc
+                        break
+            if agent_pobj:
+                break
+
+        # Coordinated passive: agent may attach to a conj verb
+        if agent_pobj is None:
+            for child in verb.children:
+                if child.dep_ == "conj" and child.pos_ == "VERB":
+                    for gc in child.children:
+                        if gc.dep_ == "agent":
+                            for ggc in gc.children:
+                                if ggc.dep_ == "pobj":
+                                    agent_pobj = ggc
+                                    break
+                        if agent_pobj:
+                            break
+                if agent_pobj:
+                    break
+
+        if agent_pobj is not None:
+            # Passive WITH agent: agent → Who; nsubjpass → What (handled by get_verb_objects)
+            subjects.extend(extract_subjects(agent_pobj))
+            return subjects
+        else:
+            # Passive WITHOUT agent: nsubjpass stays in Who (best available approximation)
+            nsubjpass_tokens = [
+                child for child in verb.children
+                if child.dep_ in _nsubjpass_labels
+            ]
+            for subj in nsubjpass_tokens:
+                subjects.extend(extract_subjects(subj))
+            if subjects:
+                return subjects
+    # ── END PASSIVE VOICE HANDLING ────────────────────────────────────────────
+
+    # Standard active voice: use nsubj
     direct_subjects = [
-        child for child in verb.children if child.dep_ in {"nsubjpass", "nsubj"}
+        child for child in verb.children if child.dep_ in {"nsubj"}
     ]
 
     for subj in direct_subjects:
@@ -376,26 +429,13 @@ def get_verb_subjects(verb):
         clause = extract_clause(csubj)
         subjects.append((clause, []))  # No preps in clause
 
-    # Handle passive sentences: get agent as subject
-    if any(child.dep_ == "nsubjpass" for child in verb.children):
-        agents = [child for child in verb.children if child.dep_ == "agent"]
-        for agent in agents:
-            by_prep = agent
-            agent_pobjs = [
-                grandchild
-                for grandchild in by_prep.children
-                if grandchild.dep_ == "pobj"
-            ]
-            for agent_pobj in agent_pobjs:
-                subjects.extend(extract_subjects(agent_pobj))
-
     # Inherit subjects from ancestor verbs if none found
     if not subjects:
         for ancestor in verb.ancestors:
             ancestor_subjects = [
                 child
                 for child in ancestor.children
-                if child.dep_ in {"nsubj", "nsubjpass", "csubj"}
+                if child.dep_ in {"nsubj", "nsubjpass", "nsubj:pass", "csubj"}
             ]
             for anc_subj in ancestor_subjects:
                 subjects.extend(extract_subjects(anc_subj))
@@ -603,7 +643,8 @@ def get_verb_objects(verb):
     agents = [child for child in verb.children if child.dep_ == "agent"]
     if agents:
         # If there's an agent, treat the nsubjpass as the object
-        nsubjpass = [child for child in verb.children if child.dep_ == "nsubjpass"]
+        # Support both legacy (nsubjpass) and UD (nsubj:pass) labels
+        nsubjpass = [child for child in verb.children if child.dep_ in {"nsubjpass", "nsubj:pass"}]
         process_objects(nsubjpass)
     else:
         # Proceed with standard object extraction
