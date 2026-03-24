@@ -5,10 +5,10 @@ import subprocess
 def _valences(language="english"):
 
     if language == "english":
-        from whodidwhat.valence.english import _positive, _negative, _ambivalent
+        from teanets.valence.english import _positive, _negative, _ambivalent
 
     elif language == "italian":
-        from whodidwhat.valence.italian import _positive, _negative, _ambivalent
+        from teanets.valence.italian import _positive, _negative, _ambivalent
 
     return _positive, _negative, _ambivalent
 

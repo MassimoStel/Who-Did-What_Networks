@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
-from whodidwhat.nlp_utils import compute_valence
-from whodidwhat.analytics import add_node_with_type, svo_to_graph
+from teanets.nlp_utils import compute_valence
+from teanets.analytics import add_node_with_type, svo_to_graph
 
 
 def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10):

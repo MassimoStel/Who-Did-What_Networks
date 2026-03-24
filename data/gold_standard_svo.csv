@@ -1,0 +1,101 @@
+sent_id,sentence,subject,verb,object
+0,The cat chased the mouse.,cat,chase,mouse
+1,John reads books.,John,read,book
+2,Mary loves chocolate.,Mary,love,chocolate
+3,The dog barks loudly.,dog,bark,
+4,The sun sets in the west.,sun,set,in west
+5,Birds fly.,bird,fly,
+6,The student is reading a book.,student,read,book
+7,They have finished their homework.,they,finish,homework
+8,He will eat the apple.,he,eat,apple
+9,The team had lost the game.,team,lose,game
+10,The mouse was chased by the cat.,mouse,chase,by cat
+11,The book was written by John.,book,write,by John
+12,The car is fixed by the mechanic.,car,fix,by mechanic
+13,The letter was delivered by the postman.,letter,deliver,by postman
+14,The window was broken.,window,break,
+15,The project is completed.,project,complete,
+16,The suspect has been arrested.,suspect,arrest,
+17,Mistakes were made.,mistake,make,
+18,Tom gave Mary a gift.,Tom,give,gift
+19,The teacher taught the students history.,teacher,teach,history
+20,She handed him the keys.,she,hand,key
+21,I bought my friend a coffee.,I,buy,coffee
+22,The cat did not chase the mouse.,cat,chase,mouse
+23,He does not like vegetables.,he,like,vegetable
+24,They have never seen the movie.,they,see,movie
+25,She will not accept the offer.,she,accept,offer
+26,Did the cat chase the mouse?,cat,chase,mouse
+27,Have you seen my keys?,you,see,key
+28,Who ate the cake?,who,eat,cake
+29,What did she say?,she,say,what
+30,The man who threw the ball is my friend.,man,be,friend
+31,The car that I bought is fast.,car,be,fast
+32,The book which she read was interesting.,book,be,interesting
+33,People who live in glass houses shouldn't throw stones.,People,throw,stone
+34,Alice and Bob played tennis.,Alice,play,tennis
+35,The cat chased the mouse and the bird.,cat,chase,mouse
+36,He ate a burger and drank a soda.,he,eat,burger
+37,Both the manager and the employees attended the meeting.,manager,attend,meeting
+38,She wants to learn French.,she,want,French
+39,They decided to stay home.,they,decide,
+40,He likes to play guitar.,he,like,guitar
+41,I need to find a new job.,I,need,job
+42,The company should increase its profits.,company,increase,profit
+43,We must solve this problem.,we,solve,problem
+44,They might cancel the event.,they,cancel,event
+45,You can achieve anything.,you,achieve,anything
+46,"Although he was tired, he finished the work.",he,finish,work
+47,"Because it rained, they canceled the picnic.",they,cancel,picnic
+48,"If you study hard, you will pass the exam.",you,pass,exam
+49,"While she was sleeping, the phone rang.",phone,ring,
+50,The patient was helped by the doctor.,patient,help,by doctor
+51,The song was sung by the choir.,song,sing,by choir
+52,The house was built by the workers.,house,build,by worker
+53,The report was reviewed by the committee.,report,review,by committee
+54,The cake was eaten.,cake,eat,
+55,The door was left open.,door,leave,
+56,The files have been deleted.,file,delete,
+57,The city was destroyed by the earthquake.,city,destroy,by earthquake
+58,She was given a promotion by her boss.,she,give,by boss
+59,The children were taught math by the tutor.,child,teach,by tutor
+60,The message was forwarded by the assistant.,message,forward,by assistant
+61,The bridge was damaged by the storm.,bridge,damage,by storm
+62,The proposal was rejected.,proposal,reject,
+63,The game was won by the underdog.,game,win,by underdog
+64,The scientist discovered a new species.,scientist,discover,species
+65,The artist painted a beautiful landscape.,artist,paint,landscape
+66,The chef prepared a five-course meal.,chef,prepare,meal
+67,Lightning struck the old tree.,lightning,strike,tree
+68,The jury found the defendant guilty.,jury,find,defendant
+69,The earthquake shook the entire city.,earthquake,shake,city
+70,Researchers published their findings.,researcher,publish,finding
+71,The president signed the new law.,president,sign,law
+72,The river flooded the village.,river,flood,village
+73,The child broke the vase accidentally.,child,break,vase
+74,Nobody expected the sudden announcement.,nobody,expect,announcement
+75,Everybody enjoyed the performance.,everybody,enjoy,performance
+76,The orchestra performed a symphony.,orchestra,perform,symphony
+77,She told him the truth.,she,tell,truth
+78,"After the meeting ended, the team celebrated.",team,celebrate,
+79,"When the alarm rang, everyone evacuated.",everyone,evacuate,
+80,The software was developed by a small team.,software,develop,by team
+81,The vaccine was distributed globally.,vaccine,distribute,
+82,"The painting, which was stolen last year, was recovered.",painting,recover,
+83,The flowers were watered every morning.,flower,water,
+84,He was promoted to senior manager.,he,promote,
+85,Mountains can be seen from here.,mountain,see,
+86,The winner was announced at midnight.,winner,announce,
+87,English is spoken worldwide.,English,speak,
+88,The data was collected over six months.,data,collect,
+89,The prisoners were released after the trial.,prisoner,release,
+90,The dog that bit the mailman was captured.,dog,capture,
+91,She asked whether he had finished.,she,ask,
+92,The committee recommended changes.,committee,recommend,change
+93,Time flies.,time,fly,
+94,The baby cried.,baby,cry,
+95,The stars shine brightly.,star,shine,
+96,Water boils at one hundred degrees.,water,boil,at degree
+97,The farmer grows wheat and corn.,farmer,grow,wheat
+98,"Despite the rain, the match continued.",match,continue,
+99,"She not only sings but also dances.",she,sing,

@@ -1,6 +1,6 @@
 import re
 from .nlp_utils import get_stanza_nlp, get_spacy_nlp
-from whodidwhat.resources import _COREFERENCE_NOUNS
+from teanets.resources import _COREFERENCE_NOUNS
 
 
 def text_preparation(text, clean=True, coref_solver="fastcoref"):

@@ -1,6 +1,6 @@
-from whodidwhat.textloader import text_preparation
-from whodidwhat.WDWplot import *
-from whodidwhat.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
+from teanets.textloader import text_preparation
+from teanets.teaplot import *
+from teanets.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
 import spacy_transformers
 from .nlp_utils import spacynlp, compute_valence
@@ -116,7 +116,7 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": subj,
-                        "WDW": "Who",
+                        "TEA": "Who",
                         "Node 2": verb,
                         "WDW2": "Did",
                         "Hypergraph": hypergraph,
@@ -132,7 +132,7 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": verb,
-                        "WDW": "Did",
+                        "TEA": "Did",
                         "Node 2": obj,
                         "WDW2": "What",
                         "Hypergraph": hypergraph,
@@ -147,7 +147,7 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": subj1,
-                        "WDW": "Who",
+                        "TEA": "Who",
                         "Node 2": subj2,
                         "WDW2": "Who",
                         "Hypergraph": hypergraph,
@@ -162,7 +162,7 @@ def extract_svos(doc):
                 data_rows.append(
                     {
                         "Node 1": obj1,
-                        "WDW": "What",
+                        "TEA": "What",
                         "Node 2": obj2,
                         "WDW2": "What",
                         "Hypergraph": hypergraph,
@@ -189,7 +189,7 @@ def extract_svos(doc):
             data_rows.append(
                 {
                     "Node 1": subj1,
-                    "WDW": "Who",
+                    "TEA": "Who",
                     "Node 2": subj2,
                     "WDW2": "Who",
                     "Hypergraph": "N/A",
@@ -205,7 +205,7 @@ def extract_svos(doc):
             data_rows.append(
                 {
                     "Node 1": obj1,
-                    "WDW": "What",
+                    "TEA": "What",
                     "Node 2": obj2,
                     "WDW2": "What",
                     "Hypergraph": "N/A",
@@ -219,7 +219,7 @@ def extract_svos(doc):
         data_rows,
         columns=[
             "Node 1",
-            "WDW",
+            "TEA",
             "Node 2",
             "WDW2",
             "Hypergraph",

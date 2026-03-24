@@ -1,6 +1,6 @@
 import spacy
 import warnings
-from whodidwhat.resources import _valences
+from teanets.resources import _valences
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
