@@ -105,6 +105,10 @@ def merge_svo_dataframes(df_list):
         merged_df["passive_approx"] = (
             merged_df["passive_approx"].fillna(0).astype(int)
         )
+    if "is_passive" in merged_df.columns:
+        merged_df["is_passive"] = (
+            merged_df["is_passive"].fillna(0).astype(int)
+        )
     return merged_df
 
 
@@ -271,6 +275,10 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
         wdw1 = row["TEA"]
         node2 = row["Node 2"]
         tea2 = row["TEA2"]
+
+        # Skip rows with missing node labels to prevent TypeError
+        if pd.isna(node1) or pd.isna(node2):
+            continue
         hypergraph = row["Hypergraph"]
         sem_synt = row["Semantic-Syntactic"]
         # Backward compatible: legacy DataFrames produced before the

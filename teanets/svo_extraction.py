@@ -107,8 +107,9 @@ def extract_svos(doc):
             # placed in Agent as a best-available approximation.
             pinfo = _passive_info(possible_verb)
             passive_approx = pinfo["is_passive"] and not pinfo["has_agent"]
+            is_passive = pinfo["is_passive"]
 
-            svo_triples.append([subjects, verb_phrase, objects, passive_approx])
+            svo_triples.append([subjects, verb_phrase, objects, passive_approx, is_passive])
 
     # Initialize list to hold DataFrame rows
     data_rows = []
@@ -116,7 +117,7 @@ def extract_svos(doc):
     # Process SVO triples to create DataFrame rows
     svo_id = 0
     for svo in svo_triples:
-        subjects, verbs, objects, passive_approx = svo
+        subjects, verbs, objects, passive_approx, is_passive = svo
         hypergraph = str(svo)
 
         # For syntactic relations (Semantic-Syntactic = 0)
@@ -136,6 +137,7 @@ def extract_svos(doc):
                         # 1 = victim-in-Agent approximation (passive, no explicit perpetrator)
                         # 0 = genuine agent or active construction
                         "passive_approx": int(passive_approx),
+                        "is_passive": int(is_passive),
                     }
                 )
 
@@ -153,6 +155,7 @@ def extract_svos(doc):
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
                         "passive_approx": 0,
+                        "is_passive": int(is_passive),
                     }
                 )
 
@@ -169,6 +172,7 @@ def extract_svos(doc):
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
                         "passive_approx": int(passive_approx),
+                        "is_passive": int(is_passive),
                     }
                 )
 
@@ -185,6 +189,7 @@ def extract_svos(doc):
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
                         "passive_approx": 0,
+                        "is_passive": int(is_passive),
                     }
                 )
         svo_id += 1
@@ -234,6 +239,7 @@ def extract_svos(doc):
     # Semantic rows (Semantic-Syntactic=1) have no passive_approx concept
     for row in data_rows:
         row.setdefault("passive_approx", 0)
+        row.setdefault("is_passive", 0)
 
     # Create DataFrame
     df = pd.DataFrame(
@@ -247,6 +253,7 @@ def extract_svos(doc):
             "Semantic-Syntactic",
             "svo_id",
             "passive_approx",
+            "is_passive",
         ],
     )
 

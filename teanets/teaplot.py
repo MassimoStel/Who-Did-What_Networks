@@ -33,8 +33,8 @@ def plot_graph(G, custom_font, filename=None, mark_passive_approx=False):
     num_nodes = G.number_of_nodes()
     # Scale figure size based on number of nodes
     figsize = (
-        max(12, 8 + (num_nodes**0.5) * 1.4),
-        max(7.5, 4.5 + (num_nodes**0.5) * 1.25),
+        max(12, 8 + (num_nodes**0.7) * 1.4),
+        max(7.5, 4.5 + (num_nodes**0.7) * 1.25),
     )
     plt.figure(figsize=figsize)
 
