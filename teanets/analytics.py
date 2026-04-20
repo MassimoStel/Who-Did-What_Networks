@@ -12,12 +12,8 @@ import pandas as pd
 def filter_svo_dataframe_by_tea(df, TEA, TEA2=None):
     """
     Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'TEA' and 'TEA2' match the provided arguments.
-
     This function specifically considers 'TEA' to be one of "Agent", "Event", or "Target". Synonyms of these terms are not taken into account.
-
     If `TEA2` is set to None , we consider all edges of TEA.
-
-
 
     Parameters:
     df (pd.DataFrame): The SVO DataFrame to filter.
@@ -27,8 +23,6 @@ def filter_svo_dataframe_by_tea(df, TEA, TEA2=None):
         - "Target"
     TEA2: The value to match in the 'TEA2' column.
         - If `TEA2` is set to None , we consider all edges of TEA.
-
-
 
     Returns:
     pd.DataFrame: The filtered DataFrame.
@@ -50,16 +44,16 @@ def filter_svo_dataframe_by_tea(df, TEA, TEA2=None):
             raise ValueError(
                 f"TEA2 must be a string or None. Provided type: {type(TEA2)}"
             )
-        WDW2_normalized = TEA2.lower()
-        if WDW2_normalized not in valid_tea_values:
+        TEA2_normalized = TEA2.lower()
+        if TEA2_normalized not in valid_tea_values:
             raise ValueError(
                 f"TEA2 must be one of {valid_tea_values} or None. Provided: '{TEA2}'"
             )
     else:
-        WDW2_normalized = None
+        TEA2_normalized = None
 
     # Apply filtering
-    if WDW2_normalized is None:
+    if TEA2_normalized is None:
         filtered_df = df[
             (
                 (df["TEA"].str.lower() == TEA_normalized)
@@ -70,7 +64,7 @@ def filter_svo_dataframe_by_tea(df, TEA, TEA2=None):
     else:
         filtered_df = df[
             (df["TEA"].str.lower() == TEA_normalized)
-            & (df["TEA2"].str.lower() == WDW2_normalized)
+            & (df["TEA2"].str.lower() == TEA2_normalized)
             & (df["Semantic-Syntactic"] == 0)
         ]
 
@@ -103,6 +97,14 @@ def merge_svo_dataframes(df_list):
         max_id = df_copy["svo_id"].max()
         if pd.notna(max_id):
             svo_id_offset = max_id + 1
+    # Backward compatibility: if any of the input DataFrames was produced
+    # before the ``passive_approx`` flag was introduced, the column will be
+    # NaN for those rows after concat. Fill with 0 (= "no approximation
+    # information available") to preserve a coherent integer dtype downstream.
+    if "passive_approx" in merged_df.columns:
+        merged_df["passive_approx"] = (
+            merged_df["passive_approx"].fillna(0).astype(int)
+        )
     return merged_df
 
 
@@ -271,6 +273,15 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
         tea2 = row["TEA2"]
         hypergraph = row["Hypergraph"]
         sem_synt = row["Semantic-Syntactic"]
+        # Backward compatible: legacy DataFrames produced before the
+        # passive_approx flag was introduced will not have the column at all,
+        # and merged legacy+new DataFrames may contain NaN. Both cases default
+        # to 0 (i.e. "no approximation information available").
+        if "passive_approx" in df.columns:
+            _pa = row["passive_approx"]
+            passive_approx = 0 if pd.isna(_pa) else int(_pa)
+        else:
+            passive_approx = 0
 
         # Determine node types based on TEA and TEA2
         node1_type = (
@@ -307,6 +318,13 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
             # Increment weight for syntactic relations
             if relation_type == "syntactic":
                 G.edges[node1_id, node2_id]["weight"] += 1
+            # Track passive_approx occurrences (count of victim-in-Agent edges
+            # collapsed onto this graph edge). An edge is considered fully
+            # "approximated" only if every contributing row was passive_approx=1.
+            G.edges[node1_id, node2_id]["passive_approx_count"] = (
+                G.edges[node1_id, node2_id].get("passive_approx_count", 0)
+                + passive_approx
+            )
         else:
             # Initialize weight to 1 for syntactic relations
             weight = 1 if relation_type == "syntactic" else 0
@@ -316,6 +334,7 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
                 relation=set([relation_type]),
                 hypergraph=set([hypergraph]),
                 weight=weight,
+                passive_approx_count=passive_approx,
             )
 
     return G
@@ -326,7 +345,7 @@ def svo_to_graph(df, subject_filter=None, object_filter=None):
 ################################################################################################
 
 
-def wdw_weighted_degree_centrality(
+def tea_weighted_degree_centrality(
     df,
     TEA,
     TEA2=None,
@@ -335,12 +354,8 @@ def wdw_weighted_degree_centrality(
 ):
     """
     Filters the SVO (Subject-Verb-Object) DataFrame to include only rows where 'TEA' and 'TEA2' match the provided arguments.
-
     This function specifically considers 'TEA' to be one of "Agent", "Event", or "Target". Synonyms of these terms are not taken into account.
-
     If `TEA2` is set to None , we consider all edges of TEA.
-
-
 
     Parameters:
     df (pd.DataFrame): The SVO DataFrame to filter.
@@ -401,7 +416,7 @@ def wdw_weighted_degree_centrality(
     return df_sorted
 
 
-def wdw_degree_centrality_overview(df):
+def tea_degree_centrality_overview(df):
     """
     Compute the degree centrality for each of the SVO components (Subject, Verb, Object) using the weighted degree centrality measure.
     """
@@ -415,5 +430,5 @@ def wdw_degree_centrality_overview(df):
     for svo, TEA, TEA2 in combinations:
 
         print(f"Degree centrality for {svo}")
-        display(wdw_weighted_degree_centrality(df, TEA, TEA2).head(20))
+        display(tea_weighted_degree_centrality(df, TEA, TEA2).head(20))
         print("############################################ \n")

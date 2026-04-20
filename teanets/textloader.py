@@ -3,6 +3,14 @@ from .nlp_utils import get_stanza_nlp, get_spacy_nlp
 from teanets.resources import _COREFERENCE_NOUNS
 
 
+# Module-level singleton for the fastcoref model. Loading the model is
+# expensive (downloads weights, allocates GPU memory), so we keep one
+# instance per process. ``teanets.batch_extract`` keeps its own GPU-aware
+# singleton; the one here is the CPU singleton used by the interactive
+# ``extract_svos_from_text`` path.
+_FASTCOREF_MODEL = None
+
+
 def text_preparation(text, clean=True, coref_solver="fastcoref"):
     """
     Prepares the text for further processing by cleaning it and resolving coreferences.
@@ -29,28 +37,21 @@ def text_preparation(text, clean=True, coref_solver="fastcoref"):
 
 def clean_text(text):
     """
-    Cleans a given text by removing double spaces and words inside parentheses.
+    Cleans a given text by removing multiple spaces and content inside parentheses/brackets.
 
     Parameters:
     text (str): The input string to clean.
-
+    
     Returns:
-    str: The cleaned text without double spaces and words inside parentheses.
+    str: The cleaned text.
     """
+    # Remove anything inside () or [] in a single pass for better performance
+    cleaned_text = re.sub(r"\(.*?\)|\[.*?\]", "", text)
 
-    # Step 1: Remove anything inside parentheses including the parentheses
-    # The regex '\(.*?\)' matches any content inside parentheses and the parentheses themselves.
-    cleaned_text = re.sub(r"\(.*?\)", "", text)
-    cleaned_text = re.sub(r"\[.*?\]", "", text)
-
-    # Step 2: Replace double spaces with single spaces
-    # This step is repeated until all double spaces are reduced to single spaces
+    # Replace 2 or more whitespace characters with a single space
     cleaned_text = re.sub(r"\s{2,}", " ", cleaned_text)
 
-    # Step 3: Strip leading and trailing spaces (if any)
-    cleaned_text = cleaned_text.strip()
-
-    return cleaned_text
+    return cleaned_text.strip()
 
 
 def solve_coreferences(text, coref_solver="fastcoref"):
@@ -86,42 +87,51 @@ def fastcoref_solve_coreferences(text_to_resolve):
     """
     Replaces coreferent mentions with their representative texts in the text reconstructed from the doc.
 
+    The fastcoref model is loaded **once** per process (module-level
+    singleton ``_FASTCOREF_MODEL``) so repeated calls are cheap. For
+    large-batch processing prefer
+    ``teanets.batch_extract.batch_coref_resolve()`` which performs a
+    single forward pass on a list of texts and supports GPU.
+
     Args:
         text.
 
     Returns:
         str: The text with coreferences resolved.
     """
+    global _FASTCOREF_MODEL
+
     from fastcoref import FCoref as OriginalFCoref
     from transformers import AutoModel
     import logging
 
     import functools
     import re
-    from tqdm import tqdm
-    from functools import partial
 
     # Suppress transformers/fastcoref logging
     logging.getLogger("transformers").setLevel(logging.ERROR)
     logging.getLogger("fastcoref").setLevel(logging.ERROR)
 
-    class PatchedFCoref(OriginalFCoref):
-        def __init__(self, *args, **kwargs):
-            original_from_config = AutoModel.from_config
+    if _FASTCOREF_MODEL is None:
+        class PatchedFCoref(OriginalFCoref):
+            def __init__(self, *args, **kwargs):
+                original_from_config = AutoModel.from_config
 
-            def patched_from_config(config, *args, **kwargs):
-                kwargs["attn_implementation"] = "eager"
-                return original_from_config(config, *args, **kwargs)
+                def patched_from_config(config, *args, **kwargs):
+                    kwargs["attn_implementation"] = "eager"
+                    return original_from_config(config, *args, **kwargs)
 
-            try:
-                AutoModel.from_config = functools.partial(
-                    patched_from_config, attn_implementation="eager"
-                )
-                super().__init__(*args, **kwargs)
-            finally:
-                AutoModel.from_config = original_from_config
+                try:
+                    AutoModel.from_config = functools.partial(
+                        patched_from_config, attn_implementation="eager"
+                    )
+                    super().__init__(*args, **kwargs)
+                finally:
+                    AutoModel.from_config = original_from_config
 
-    model = PatchedFCoref(nlp=get_spacy_nlp(), device="cpu")
+        _FASTCOREF_MODEL = PatchedFCoref(nlp=get_spacy_nlp(), device="cpu")
+
+    model = _FASTCOREF_MODEL
 
     preds = model.predict(texts=text_to_resolve)
 

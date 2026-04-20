@@ -2,11 +2,17 @@ from teanets.textloader import text_preparation
 from teanets.teaplot import *
 from teanets.resources import _VAGUE_ADVMODS, _VAGUE_AUX, _VAGUE_ADJ
 import spacy
-import spacy_transformers
 from .nlp_utils import spacynlp, compute_valence
 from itertools import combinations, chain
 from nltk.corpus import wordnet as wn
 import pandas as pd
+
+# Lemmas of modal and copulative auxiliaries that do NOT signal passive even when they appear as dep=aux in front of a VBN.
+
+_NONPASSIVE_AUX_LEMMAS = {
+    "be", "have", "do", "will", "shall", "would", "should",
+    "could", "might", "may", "must", "can",
+}
 
 
 def extract_svos_from_text(text, coref_solver="fastcoref"):
@@ -96,8 +102,13 @@ def extract_svos(doc):
             subjects = get_verb_subjects(possible_verb)
             objects = get_verb_objects(possible_verb)
             verb_phrase = get_verb_phrase(possible_verb)
+            # passive_approx=True when verb is passive but no explicit agent
+            # was found; in this case the "subject" is the patient/victim
+            # placed in Agent as a best-available approximation.
+            pinfo = _passive_info(possible_verb)
+            passive_approx = pinfo["is_passive"] and not pinfo["has_agent"]
 
-            svo_triples.append([subjects, verb_phrase, objects])
+            svo_triples.append([subjects, verb_phrase, objects, passive_approx])
 
     # Initialize list to hold DataFrame rows
     data_rows = []
@@ -105,7 +116,7 @@ def extract_svos(doc):
     # Process SVO triples to create DataFrame rows
     svo_id = 0
     for svo in svo_triples:
-        subjects, verbs, objects = svo
+        subjects, verbs, objects, passive_approx = svo
         hypergraph = str(svo)
 
         # For syntactic relations (Semantic-Syntactic = 0)
@@ -122,6 +133,9 @@ def extract_svos(doc):
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
+                        # 1 = victim-in-Agent approximation (passive, no explicit perpetrator)
+                        # 0 = genuine agent or active construction
+                        "passive_approx": int(passive_approx),
                     }
                 )
 
@@ -138,6 +152,7 @@ def extract_svos(doc):
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
+                        "passive_approx": 0,
                     }
                 )
 
@@ -153,6 +168,7 @@ def extract_svos(doc):
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
+                        "passive_approx": int(passive_approx),
                     }
                 )
 
@@ -168,6 +184,7 @@ def extract_svos(doc):
                         "Hypergraph": hypergraph,
                         "Semantic-Syntactic": 0,
                         "svo_id": svo_id,
+                        "passive_approx": 0,
                     }
                 )
         svo_id += 1
@@ -214,6 +231,10 @@ def extract_svos(doc):
                 }
             )
 
+    # Semantic rows (Semantic-Syntactic=1) have no passive_approx concept
+    for row in data_rows:
+        row.setdefault("passive_approx", 0)
+
     # Create DataFrame
     df = pd.DataFrame(
         data_rows,
@@ -225,6 +246,7 @@ def extract_svos(doc):
             "Hypergraph",
             "Semantic-Syntactic",
             "svo_id",
+            "passive_approx",
         ],
     )
 
@@ -311,6 +333,129 @@ def get_verb_phrase(verb):
     return [" ".join(parts)]
 
 
+def _passive_info(verb):
+    """
+    Returns a dict describing the passive status of *verb*.
+
+    Four independent signals are checked:
+
+    1. CANONICAL passive  – spaCy uses ``auxpass``/``nsubjpass`` directly on
+       the verb (e.g. "I was raped", "I got raped").
+    2. FEEL-passive       – verb is VBN and has a child with ``dep='aux'``
+       whose lemma is NOT a modal/copula (e.g. "I felt abused",
+       "She seemed targeted").  spaCy mis-tags the aux as active here.
+    3. AGENT-phrase       – verb is VBN and has a child with ``dep='agent'``
+       (by-phrase), regardless of auxiliaries (e.g. "She seemed targeted by
+       everyone", "He appeared beaten by the crowd").
+    4. COORDINATED conj   – verb is VBN with ``dep='conj'`` and its head verb
+       is itself passive (e.g. "raped" in "I was held down and raped").
+       The conjunct inherits the passive status (and agent, if any) from head.
+
+    Returns
+    -------
+    dict with keys:
+        is_passive  : bool
+        has_agent   : bool  – True only when an explicit by-phrase exists
+        agent_pobj  : Token | None  – the pobj of the agent prep, if found
+        feel_aux    : Token | None  – the non-standard aux token, if any
+    """
+    _nsubjpass_labels = {"nsubjpass", "nsubj:pass"}
+    _auxpass_labels   = {"auxpass",   "aux:pass"}
+    children_deps = {child.dep_ for child in verb.children}
+
+    # Signal 1 – canonical
+    canonical = bool(
+        (children_deps & _nsubjpass_labels) or
+        (children_deps & _auxpass_labels)
+    )
+
+    # Signal 2 – feel-passive (VBN + non-modal aux)
+    feel_aux = None
+    if verb.tag_ == "VBN":
+        for child in verb.children:
+            if child.dep_ == "aux" and child.lemma_ not in _NONPASSIVE_AUX_LEMMAS:
+                feel_aux = child
+                break
+
+    # Signal 3 – explicit agent (by-phrase)
+    agent_pobj = None
+    for child in verb.children:
+        if child.dep_ == "agent":
+            for gc in child.children:
+                if gc.dep_ == "pobj":
+                    agent_pobj = gc
+                    break
+            if agent_pobj:
+                break
+
+    # Coordinated passive: agent may attach to a conj verb
+    if agent_pobj is None:
+        for child in verb.children:
+            if child.dep_ == "conj" and child.pos_ == "VERB":
+                for gc in child.children:
+                    if gc.dep_ == "agent":
+                        for ggc in gc.children:
+                            if ggc.dep_ == "pobj":
+                                agent_pobj = ggc
+                                break
+                    if agent_pobj:
+                        break
+            if agent_pobj:
+                break
+
+    has_agent = agent_pobj is not None
+
+    # Signal 4 – coordinated VBN conjunct inherits passive from head verb.
+    # "I was held down and raped": raped=conj(held), VBN, no aux/nsubjpass
+    # of its own, but held IS passive → raped inherits passive status.
+    conj_passive = False
+    if not (canonical or feel_aux or has_agent):
+        if verb.tag_ == "VBN" and verb.dep_ == "conj" and verb.head.pos_ == "VERB":
+            head_info = _passive_info(verb.head)
+            conj_passive = head_info["is_passive"]
+            # If the head has an agent, propagate it to this conjunct
+            if head_info["has_agent"]:
+                has_agent = True
+                agent_pobj = head_info["agent_pobj"]
+
+    is_passive = canonical or (feel_aux is not None) or has_agent or conj_passive
+
+    return {
+        "is_passive": is_passive,
+        "has_agent":  has_agent,
+        "agent_pobj": agent_pobj,
+        "feel_aux":   feel_aux,
+    }
+
+
+def _find_patient(verb, info):
+    """
+    Return a list of patient tokens for a passive *verb*, searching in order:
+    1. nsubjpass direct children (canonical passives).
+    2. nsubj direct children (feel-passives where spaCy uses nsubj).
+    3. nsubj/nsubjpass children of the head verb (raised passives: oprd/xcomp,
+       or coordinated passives: conj).
+    4. nsubj children of feel_aux (inconsistent spaCy parse).
+    """
+    _nsubjpass_labels = {"nsubjpass", "nsubj:pass"}
+
+    patients = [child for child in verb.children if child.dep_ in _nsubjpass_labels]
+    if not patients:
+        patients = [child for child in verb.children if child.dep_ == "nsubj"]
+    if not patients and verb.dep_ in {"oprd", "xcomp", "advcl", "conj"}:
+        patients = [
+            child for child in verb.head.children
+            if child.dep_ in _nsubjpass_labels | {"nsubj"}
+        ]
+    # Also try feel_aux's children (inconsistent spaCy parse with advmod)
+    if not patients and info.get("feel_aux") is not None:
+        patients = [
+            child for child in info["feel_aux"].children
+            if child.dep_ in _nsubjpass_labels | {"nsubj"}
+        ]
+    return patients
+
+
 def get_verb_subjects(verb):
     """
     Retrieve the subjects of a given verb, including through coordination and inheritance.
@@ -319,16 +464,21 @@ def get_verb_subjects(verb):
 
     For compound nouns, each component is included separately.
 
-    PASSIVE VOICE HANDLING (fix Punto 13):
-      - Passivo con agente ("X was Vd by Y"):
-          Y (→ pobj dell'agent) è il soggetto SEMANTICO → va in Agent
-          X (nsubjpass) è il paziente → NON va in Agent (andrà in Target via get_verb_objects)
-      - Passivo senza agente ("X was Vd"):
-          Nessun agente identificabile; X (nsubjpass) rimane in Agent
-          come miglior approssimazione disponibile.
-      - Passivo coordinato ("X was written and reviewed by Y"):
-          L'agent può essere figlio del verbo conj, non del ROOT.
-          Controlliamo anche i figli dei conj di tipo VERB.
+    PASSIVE VOICE HANDLING:
+      Uses ``_passive_info()`` to detect three types of passive constructions:
+        1. Canonical passive (auxpass / nsubjpass) — e.g. "I was raped by X".
+        2. Feel-passive (non-modal aux + VBN) — e.g. "I felt abused by X".
+        3. Agent-phrase passive (VBN + by-phrase) — e.g. "She seemed targeted by Y".
+
+      - Passive WITH explicit agent ("by Y"):
+          Y (pobj of the agent prep) is the semantic agent → goes to Agent.
+          X (patient) → goes to Target via ``get_verb_objects()``.
+      - Passive WITHOUT explicit agent ("I was raped", "I felt abused"):
+          X (patient) stays in Agent as best-available approximation;
+          flagged with ``passive_approx=1`` in the output DataFrame.
+      - Coordinated passive ("X was written and reviewed by Y"):
+          The agent may be a child of a conj verb, not of ROOT.
+          ``_passive_info()`` searches conj children as well.
 
     Args:
         verb: The verb token.
@@ -345,7 +495,10 @@ def get_verb_subjects(verb):
         nsubjs = [child for child in verb.children if child.dep_ == "nsubj"]
         if nsubjs:
             for subj in nsubjs:
-                if subj.lower_ in {"target", "which", "that", "whom", "whose"}:
+                # Relative pronouns: refer back to the modified noun.
+                # NOTE: "target" was previously listed here by mistake (residual
+                # of an old role-name refactor). Removed: it is a regular noun.
+                if subj.lower_ in {"which", "that", "whom", "whose"}:
                     # Use the modified noun as the subject
                     modified_noun = verb.head
                     main_part, prep_parts = get_compound_parts(
@@ -362,57 +515,24 @@ def get_verb_subjects(verb):
         return subjects
 
     # ── PASSIVE VOICE HANDLING ────────────────────────────────────────────────
-    # Determine if this is a passive construction (nsubjpass or auxpass present)
-    _nsubjpass_labels = {"nsubjpass", "nsubj:pass"}
-    _auxpass_labels   = {"auxpass",   "aux:pass"}
-    children_deps = {child.dep_ for child in verb.children}
-    is_passive = bool(
-        (children_deps & _nsubjpass_labels) or
-        (children_deps & _auxpass_labels)
-    )
+    # Uses _passive_info() which detects canonical, feel-, and agent-phrase
+    # passive constructions uniformly.
+    pinfo = _passive_info(verb)
 
-    if is_passive:
-        # Look for agent: first in direct children, then in conj verbs
-        agent_pobj = None
-
-        for child in verb.children:
-            if child.dep_ == "agent":
-                for gc in child.children:
-                    if gc.dep_ == "pobj":
-                        agent_pobj = gc
-                        break
-            if agent_pobj:
-                break
-
-        # Coordinated passive: agent may attach to a conj verb
-        if agent_pobj is None:
-            for child in verb.children:
-                if child.dep_ == "conj" and child.pos_ == "VERB":
-                    for gc in child.children:
-                        if gc.dep_ == "agent":
-                            for ggc in gc.children:
-                                if ggc.dep_ == "pobj":
-                                    agent_pobj = ggc
-                                    break
-                        if agent_pobj:
-                            break
-                if agent_pobj:
-                    break
-
-        if agent_pobj is not None:
-            # Passive WITH agent: agent → Agent; nsubjpass → Target (handled by get_verb_objects)
-            subjects.extend(extract_subjects(agent_pobj))
-            return subjects
+    if pinfo["is_passive"]:
+        if pinfo["has_agent"]:
+            # Passive WITH explicit agent → agent goes to Agent role
+            subjects.extend(extract_subjects(pinfo["agent_pobj"]))
         else:
-            # Passive WITHOUT agent: nsubjpass stays in Agent (best available approximation)
-            nsubjpass_tokens = [
-                child for child in verb.children
-                if child.dep_ in _nsubjpass_labels
-            ]
-            for subj in nsubjpass_tokens:
-                subjects.extend(extract_subjects(subj))
-            if subjects:
-                return subjects
+            # Passive WITHOUT explicit agent → patient stays in Agent as
+            # best-available approximation (same policy as canonical passive).
+            # Flag is recorded via passive_approx column in extract_svos().
+            for patient in _find_patient(verb, pinfo):
+                subjects.extend(extract_subjects(patient))
+
+        # Always return here: prevents false inheritance of an active ancestor's
+        # nsubj when the current verb is passive (e.g. "I went out and got raped").
+        return subjects
     # ── END PASSIVE VOICE HANDLING ────────────────────────────────────────────
 
     # Standard active voice: use nsubj
@@ -639,47 +759,51 @@ def get_verb_objects(verb):
         for obj in object_tokens:
             objects.extend(extract_objects(obj))
 
-    # Check if the verb has an agent (passive voice with agent)
-    agents = [child for child in verb.children if child.dep_ == "agent"]
-    if agents:
-        # If there's an agent, treat the nsubjpass as the object
-        # Support both legacy (nsubjpass) and UD (nsubj:pass) labels
-        nsubjpass = [child for child in verb.children if child.dep_ in {"nsubjpass", "nsubj:pass"}]
-        process_objects(nsubjpass)
-    else:
-        # Proceed with standard object extraction
-        # 1. Direct Objects (e.g., "eat an apple")
-        direct_objects = [
-            child
-            for child in verb.children
-            if child.dep_ in {"dobj", "attr", "oprd", "acomp"}
-        ]
-        process_objects(direct_objects)
+    # ── PASSIVE VOICE: patient as Target ─────────────────────────────────────
+    # For all passive constructions (canonical, feel-, agent-phrase) that have
+    # an explicit agent, we look up the patient and add it as Target.
+    pinfo = _passive_info(verb)
+    if pinfo["is_passive"] and pinfo["has_agent"]:
+        patients = _find_patient(verb, pinfo)
+        process_objects(patients)
+        return objects
+    # ── END PASSIVE VOICE ─────────────────────────────────────────────────────
 
-        # 2. Indirect Objects (e.g., "give me the book")
-        indirect_objects = [
-            child for child in verb.children if child.dep_ in {"iobj", "dative"}
-        ]
-        process_objects(indirect_objects)
+    # Standard active voice: proceed with object extraction
+    # (Passive with agent already returned above.)
 
-        # 3. Objects in Prepositional Phrases (e.g., "look at the sky")
-        prep_phrases = [child for child in verb.children if child.dep_ == "prep"]
+    # 1. Direct Objects (e.g., "eat an apple")
+    direct_objects = [
+        child
+        for child in verb.children
+        if child.dep_ in {"dobj", "attr", "oprd", "acomp"}
+    ]
+    process_objects(direct_objects)
+
+    # 2. Indirect Objects (e.g., "give me the book")
+    indirect_objects = [
+        child for child in verb.children if child.dep_ in {"iobj", "dative"}
+    ]
+    process_objects(indirect_objects)
+
+    # 3. Objects in Prepositional Phrases (e.g., "look at the sky")
+    prep_phrases = [child for child in verb.children if child.dep_ == "prep"]
+    for prep in prep_phrases:
+        # Handles Conjuncts in Prepositional Phrases
+        preps = get_conjuncts(prep)
+        for p in preps:
+            pobj = [child for child in p.children if child.dep_ == "pobj"]
+            process_objects(pobj)
+
+    # 4. If no direct objects, include prepositional phrases as objects
+    if not objects:
         for prep in prep_phrases:
-            # Handles Conjuncts in Prepositional Phrases
-            preps = get_conjuncts(prep)
-            for p in preps:
-                pobj = [child for child in p.children if child.dep_ == "pobj"]
-                process_objects(pobj)
-
-        # 4. If no direct objects, include prepositional phrases as objects
-        if not objects:
-            for prep in prep_phrases:
-                prep_text = prep.lemma_
-                pobj = [child for child in prep.children if child.dep_ == "pobj"]
-                for obj in pobj:
-                    main_part, prep_parts = get_compound_parts(obj)
-                    full_object = prep_text + " " + main_part
-                    objects.append((full_object, prep_parts))
+            prep_text = prep.lemma_
+            pobj = [child for child in prep.children if child.dep_ == "pobj"]
+            for obj in pobj:
+                main_part, prep_parts = get_compound_parts(obj)
+                full_object = prep_text + " " + main_part
+                objects.append((full_object, prep_parts))
 
     # 5. Objects in Noun Phrase Adverbial Modifiers (e.g., "He arrived yesterday")
     npadvmod_objects = [

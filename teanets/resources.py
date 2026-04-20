@@ -1,6 +1,3 @@
-import spacy
-import subprocess
-
 
 def _valences(language="english"):
 

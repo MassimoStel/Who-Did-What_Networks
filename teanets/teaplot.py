@@ -7,19 +7,25 @@ from teanets.nlp_utils import compute_valence
 from teanets.analytics import add_node_with_type, svo_to_graph
 
 
-def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10, filename=None):
+def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10, filename=None, mark_passive_approx=False):
     """
     Plot a graph of SVO data.
 
     Args:
         df (dataframe): a pandas DataFrame of SVO data.
         subject_filter (str): A subject to filter the graph by.
+        mark_passive_approx (bool): If True, edges that originate exclusively
+            from passive constructions without an explicit agent
+            (``passive_approx == 1``) are drawn with a dashed style and
+            reduced alpha to visually distinguish "victim-in-Agent"
+            approximations from genuine perpetrator edges.
+            Default ``False`` preserves the legacy rendering.
     """
     G = svo_to_graph(df, subject_filter=subject_filter, object_filter=object_filter)
-    plot_graph(G, custom_font, filename)
+    plot_graph(G, custom_font, filename, mark_passive_approx=mark_passive_approx)
 
 
-def plot_graph(G, custom_font, filename=None):
+def plot_graph(G, custom_font, filename=None, mark_passive_approx=False):
     import numpy as np
     import matplotlib.pyplot as plt
     from matplotlib.patches import FancyArrowPatch
@@ -173,6 +179,20 @@ def plot_graph(G, custom_font, filename=None):
         else:
             style = "-"
 
+        # Mark passive_approx edges (only when explicitly requested and only
+        # when EVERY contributing row was passive_approx=1, i.e. the edge
+        # exists exclusively as a victim-in-Agent approximation).
+        edge_weight = data.get("weight", 1)
+        pa_count = data.get("passive_approx_count", 0)
+        edge_is_passive_approx = (
+            mark_passive_approx and edge_weight > 0 and pa_count >= edge_weight
+        )
+        if edge_is_passive_approx:
+            style = ":"  # dotted
+            extra_alpha_factor = 0.55
+        else:
+            extra_alpha_factor = 1.0
+
         # Determine edge color based on valence of start and end nodes
         start_valence = valences[u]
         end_valence = valences[v]
@@ -221,7 +241,7 @@ def plot_graph(G, custom_font, filename=None):
                 style=style,
                 color=color,
                 linewidth=linewidth,
-                alpha=0.45,
+                alpha=0.45 * extra_alpha_factor,
             )
 
             # Then, draw synonym edge
@@ -235,7 +255,7 @@ def plot_graph(G, custom_font, filename=None):
                 style=style,
                 color=color,
                 linewidth=linewidth,
-                alpha=0.25,
+                alpha=0.25 * extra_alpha_factor,
             )
 
         elif "syntactic" in relations:
@@ -277,7 +297,7 @@ def plot_graph(G, custom_font, filename=None):
                 style=style,
                 color=color,
                 linewidth=linewidth,
-                alpha=0.45,
+                alpha=0.45 * extra_alpha_factor,
             )
 
         elif "synonym" in relations:
@@ -294,7 +314,7 @@ def plot_graph(G, custom_font, filename=None):
                 style=style,
                 color=color,
                 linewidth=linewidth,
-                alpha=0.35,
+                alpha=0.35 * extra_alpha_factor,
             )
 
         else:

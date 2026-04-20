@@ -59,7 +59,7 @@ To ensure accuracy, we validated the extraction logic against a **Gold Standard*
 Currently, the package can be installed through this Github repository. Note that this requires [Git](https://git-scm.com/) to be installed.
 
 ```bash
-pip install git+https://github.com/MassimoStel/Target-Event-Agent_Networks
+pip install git+https://github.com/RiccardoImprota/Who-Did-What-Networks
 ```
 
 ### Prerequisites
@@ -82,12 +82,19 @@ svo = tea.extract_svos_from_text(text)
 display(svo)
 ```
 
-| Node 1   | TEA   | Node 2   | TEA2   | Hypergraph                                                |   Semantic-Syntactic |   svo_id |
-|:---------|:------|:---------|:-------|:----------------------------------------------------------|---------------------:|---------:|
-| Mark     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
-| Rose     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
-| go       | Event   | to park  | Target   | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
-| Mark     | Agent   | Rose     | Agent    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |
+| Node 1   | TEA   | Node 2   | TEA2   | Hypergraph                                                |   Semantic-Syntactic |   svo_id |   passive_approx |
+|:---------|:------|:---------|:-------|:----------------------------------------------------------|---------------------:|---------:|-----------------:|
+| Mark     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
+| Rose     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
+| go       | Event   | to park  | Target   | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
+| Mark     | Agent   | Rose     | Agent    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
+
+> The ``passive_approx`` column flags rows where the *Agent* slot does not contain
+> a true semantic agent but rather a patient placed there as best-available
+> approximation (passive without by-phrase, e.g. *"the report was reviewed"*).
+> Set to ``1`` only for those Agent–Event and Agent–Agent edges; always ``0``
+> elsewhere. Older outputs without this column are still fully supported by the
+> analytics and plotting helpers (treated as ``0``).
 
 
 ```
@@ -99,7 +106,7 @@ tea.plot_svo_graph(svo)
 
 ### Starting Guide
 
-You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Agent-did-Target-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
+You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Who-Did-What-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
 
 The starting guides features a more complete description of the package and an usage guide.
 

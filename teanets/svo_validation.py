@@ -4,6 +4,7 @@ Provides dep-parsing-based SVO extraction and evaluation against a gold standard
 """
 import pandas as pd
 from .nlp_utils import get_spacy_nlp
+from .svo_extraction import extract_svos, _passive_info
 
 
 def _norm(x):
@@ -69,6 +70,7 @@ def validate_svo(gold_csv_path, nlp=None):
     ----------
     gold_csv_path : str
         Path to a CSV with columns: sentence, subject, verb, object.
+        An optional ``passive_approx`` column is ignored by this function.
     nlp : spacy.Language, optional
         A spaCy model. Loaded automatically if not provided.
 
@@ -101,3 +103,102 @@ def validate_svo(gold_csv_path, nlp=None):
         "Object":  _prf(df_eval["pred_obj"],  df_eval["gold_object"]),
     }
     return pd.DataFrame(metrics).T
+
+
+def validate_passive(gold_csv_path, nlp=None, verbose=True):
+    """
+    Validate the full TEA pipeline's passive voice handling against a gold
+    standard CSV that includes a ``passive_approx`` column.
+
+    This function uses ``extract_svos()`` (not the minimal baseline) and
+    checks that the ``passive_approx`` flag is correctly assigned for each
+    sentence.
+
+    Parameters
+    ----------
+    gold_csv_path : str
+        Path to a CSV with columns: sentence, subject, verb, object, passive_approx.
+    nlp : spacy.Language, optional
+        A spaCy model. Loaded automatically if not provided.
+    verbose : bool
+        If True, print per-sentence PASS/FAIL results.
+
+    Returns
+    -------
+    dict
+        Summary with keys: total, passed, failed, accuracy, details (list of dicts).
+    """
+    if nlp is None:
+        nlp = get_spacy_nlp()
+
+    df_gold = pd.read_csv(gold_csv_path)
+
+    # Ensure passive_approx column exists
+    if "passive_approx" not in df_gold.columns:
+        raise ValueError(
+            "Gold CSV must contain a 'passive_approx' column. "
+            "Use validate_svo() for CSVs without it."
+        )
+
+    results = []
+    for _, row in df_gold.iterrows():
+        sent = str(row["sentence"])
+        if sent == "nan":
+            continue
+
+        gold_approx = int(row["passive_approx"])
+
+        # Run full TEA pipeline
+        doc = nlp(sent)
+        df = extract_svos(doc)
+
+        # Get Agent→Event rows
+        agent_rows = df[(df["TEA"] == "Agent") & (df["TEA2"] == "Event")]
+
+        if len(agent_rows) == 0:
+            # No extraction — mark as fail if gold expected something
+            got_approx = -1
+        elif len(agent_rows) == 1:
+            got_approx = int(agent_rows.iloc[0]["passive_approx"])
+        else:
+            # Multiple agent rows (e.g. coordinated): use max
+            # (if any row is passive_approx=1, the sentence has passive approx)
+            got_approx = int(agent_rows["passive_approx"].max())
+
+        passed = got_approx == gold_approx
+        results.append({
+            "sentence": sent,
+            "gold_approx": gold_approx,
+            "got_approx": got_approx,
+            "passed": passed,
+        })
+
+        if verbose:
+            marker = "✓" if passed else "✗"
+            print(f"  [{marker}] {sent}")
+            if not passed:
+                print(f"      passive_approx: got={got_approx} exp={gold_approx}")
+
+    n_total = len(results)
+    n_passed = sum(r["passed"] for r in results)
+    n_failed = n_total - n_passed
+    accuracy = n_passed / n_total if n_total else 0.0
+
+    if verbose:
+        print(f"\n{'='*60}")
+        print(f"PASSIVE APPROX VALIDATION: {n_passed}/{n_total} "
+              f"({accuracy:.1%} accuracy)")
+        if n_failed:
+            print(f"\nFailed sentences ({n_failed}):")
+            for r in results:
+                if not r["passed"]:
+                    print(f"  - {r['sentence']}")
+        print()
+
+    return {
+        "total": n_total,
+        "passed": n_passed,
+        "failed": n_failed,
+        "accuracy": round(accuracy, 3),
+        "details": results,
+    }

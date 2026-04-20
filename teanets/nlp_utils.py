@@ -6,6 +6,18 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 _nlp_spacy = None
 _nlp_stanza = None
+_vader_analyzer = None
+
+
+def _get_vader_analyzer():
+    """Return a process-wide singleton SentimentIntensityAnalyzer.
+    Avoids re-instantiating the analyzer (which loads its lexicon)
+    on every call to ``compute_valence``.
+    """
+    global _vader_analyzer
+    if _vader_analyzer is None:
+        _vader_analyzer = SentimentIntensityAnalyzer()
+    return _vader_analyzer
 
 
 def spacynlp(text):
@@ -53,14 +65,13 @@ def get_stanza_nlp():
 def compute_valence(text):
     """
     Compute the valence of a given text based on positive and negative words using Vader Sentiment Analysis.
-
     Args:
         text (str): The text to analyze.
 
     Returns:
         str: 'positive', 'negative', or 'neutral'
     """
-    analyzer = SentimentIntensityAnalyzer()
+    analyzer = _get_vader_analyzer()
 
     vs = analyzer.polarity_scores(text)
 
