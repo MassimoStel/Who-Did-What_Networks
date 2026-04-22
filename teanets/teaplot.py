@@ -7,7 +7,7 @@ from teanets.nlp_utils import compute_valence
 from teanets.analytics import add_node_with_type, svo_to_graph
 
 
-def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font = 10, filename=None, mark_passive_approx=False):
+def plot_svo_graph(df, subject_filter=None, object_filter=None, custom_font=14, filename=None, mark_passive_approx=False):
     """
     Plot a graph of SVO data.
 
@@ -328,7 +328,7 @@ def plot_graph(G, custom_font, filename=None, mark_passive_approx=False):
         color = node_colors[node]
 
         bbox_props = dict(
-            boxstyle="round,pad=0.2,rounding_size=0.2", fc=color, ec="none", alpha=0.8
+            boxstyle="round,pad=0.45,rounding_size=0.3", fc=color, ec="none", alpha=0.85
         )
         plt.text(
             x,

@@ -117,7 +117,7 @@ def validate_passive(gold_csv_path, nlp=None, verbose=True):
     Parameters
     ----------
     gold_csv_path : str
-        Path to a CSV with columns: sentence, subject, verb, object, passive_approx.
+        Path to a CSV with columns: sentence, subject, verb, object, passive_approx, is_passive.
     nlp : spacy.Language, optional
         A spaCy model. Loaded automatically if not provided.
     verbose : bool
