@@ -17,7 +17,8 @@ def _prf(pred, gold):
     """Compute Precision, Recall, F1 for two Series."""
     p = pred.apply(_norm)
     g = gold.apply(_norm)
-    tp = (p == g).sum()
+    both_present = (p != "__none__") & (g != "__none__")
+    tp = ((p == g) & both_present).sum()
     n_pred = (p != "__none__").sum()
     n_gold = (g != "__none__").sum()
     precision = tp / n_pred if n_pred else 0.0
