@@ -208,10 +208,10 @@ def plot_graph(G, custom_font, filename=None, mark_passive_approx=False):
             # Determine weight-based linewidth for syntactic edge
             weight = data.get("weight", 1)
             if min_weight == max_weight:
-                linewidth = 2  # Default linewidth if all weights are the same
+                linewidth = 4  # Default linewidth if all weights are the same
             else:
                 # Map weight to linewidth between 1 and 3
-                linewidth = 1.5 + 2 * (weight - min_weight) / (max_weight - min_weight)
+                linewidth = 4.5 + 2 * (weight - min_weight) / (max_weight - min_weight)
 
             # Determine edge color based on valence
             if start_valence == "positive" and end_valence == "positive":
@@ -264,10 +264,10 @@ def plot_graph(G, custom_font, filename=None, mark_passive_approx=False):
             # Determine weight-based linewidth
             weight = data.get("weight", 1)
             if min_weight == max_weight:
-                linewidth = 2  # Default linewidth if all weights are the same
+                linewidth = 4  # Default linewidth if all weights are the same
             else:
                 # Map weight to linewidth between 1 and 3
-                linewidth = 1.8 + 2 * (weight - min_weight) / (max_weight - min_weight)
+                linewidth = 4.5 + 2 * (weight - min_weight) / (max_weight - min_weight)
 
             # Determine edge color based on valence
             if start_valence == "positive" and end_valence == "positive":
@@ -346,21 +346,21 @@ def plot_graph(G, custom_font, filename=None, mark_passive_approx=False):
         -2,
         max(pos.values(), key=lambda x: x[1])[1] + 2.0,
         "AGENT",
-        fontsize=20,
+        fontsize=40,
         ha="center",
     )
     plt.text(
         0,
         max(pos.values(), key=lambda x: x[1])[1] + 2.0,
         "EVENT",
-        fontsize=20,
+        fontsize=40,
         ha="center",
     )
     plt.text(
         2,
         max(pos.values(), key=lambda x: x[1])[1] + 2.0,
         "TARGET",
-        fontsize=20,
+        fontsize=40,
         ha="center",
     )
 
