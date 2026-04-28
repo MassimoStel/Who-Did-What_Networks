@@ -20,9 +20,9 @@ except FileNotFoundError:
 
 setup(
     name="teanets",
-    url="https://github.com/RiccardoImprota/Who-Did-What-Networks",
-    author="Riccardo Improta",
-    author_email="riccardo.imp@gmail.com",
+    url="https://github.com/MassimoStel/TEA_Networks.git",
+    author="Sebastiano Franchini",
+    author_email="franchini.sebastiano@gmail.com",
     packages=find_packages(),
     install_requires=requirements,
     version="0.3.0",

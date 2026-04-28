@@ -59,7 +59,7 @@ To ensure accuracy, we validated the extraction logic against a **Gold Standard*
 Currently, the package can be installed through this Github repository. Note that this requires [Git](https://git-scm.com/) to be installed.
 
 ```bash
-pip install git+https://github.com/RiccardoImprota/Who-Did-What-Networks
+pip install git+https://github.com/MassimoStel/TEA_Networks.git
 ```
 
 ### Prerequisites
@@ -106,14 +106,14 @@ tea.plot_svo_graph(svo)
 
 ### Starting Guide
 
-You can access the Starting Guide here: [Starting Guide](https://github.com/RiccardoImprota/Who-Did-What-Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
+You can access the Starting Guide here: [Starting Guide](https://github.com/MassimoStel/TEA_Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
 
 The starting guides features a more complete description of the package and an usage guide.
 
 
 ### Google Colab Demo
 
-You can access the Google Colab demo here: [Target-Event-Agent Demo](https://colab.research.google.com/drive/1mT9wi6fKXCm3o7765hRhNKyRe--6hBRG?usp=sharing).
+You can access the Google Colab demo here: [Target-Event-Agent Demo](https://colab.research.google.com/drive/1fs73YQkPu55C_Cwt2lYhuvfc0aBXjnQo?usp=sharing).
 
 
 ---
