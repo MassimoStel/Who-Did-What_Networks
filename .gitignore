@@ -21,3 +21,6 @@ data/*
 .DS_Store
 Thumbs.db
 *:Zone.Identifier
+
+# Internal Notebooks
+Docs & Guides/Assault_Actors_Analysis.ipynb
