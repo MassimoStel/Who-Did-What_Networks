@@ -9,9 +9,9 @@ A Python library that implements a novel framework to measure bias through its a
 
 ## Description
 Target-Event-Agent cognitive networks are a novel framework to measure bias through its actors, actions and consequences. These semantic/syntactic multilayer networks are composed of 3 layers:
-- **Agent**: Subjects/actors (Who)
-- **Event**: Verbs/actions (Did)
-- **Target**: Objects/consequences (What)
+- **Agent**: Subjects/actors
+- **Event**: Verbs/actions
+- **Target**: Objects/consequences
 
 Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “target event agent” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such through EmoAtlas can give general results about the overall context of biased perceptions, Target-Event-Agent networks can complement TFMNs by providing a focus on actors, actions and consequences.
 
@@ -31,7 +31,7 @@ The TEA library correctly distinguishes between the semantic agent and the gramm
 - **Passive WITH Agent** (*"The patient was helped by the doctor"*): The agent (*doctor*) is correctly identified as the **Agent**, while the patient (*patient*) is mapped to the **Target**.
 - **Passive WITHOUT Agent** (*"The window was broken"*): If no agent is present, the patient remains in the **Agent** position as the best available approximation.
 
-| Sentence | Agent (Who) | Target (What) |
+| Sentence | Agent | Target |
 |:---------|:------------|:--------------|
 | *The patient was helped by the doctor.* | doctor | patient |
 | *The report was reviewed.* | report | None |
