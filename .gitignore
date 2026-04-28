@@ -11,8 +11,11 @@ __pycache__/
 .vscode/
 *.swp
 
-# Data (large, regenerable — exclude entire folder)
-data/
+# Data (large, regenerable)
+data/*
+!data/gold_standard_svo.csv
+!data/passive_gold.csv
+!data/sample_sentences.csv
 
 # OS
 .DS_Store
