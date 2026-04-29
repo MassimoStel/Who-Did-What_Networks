@@ -13,7 +13,7 @@ Target-Event-Agent cognitive networks are a novel framework to measure bias thro
 - **Event**: Verbs/actions
 - **Target**: Objects/consequences
 
-Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “target event agent” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such through EmoAtlas can give general results about the overall context of biased perceptions, Target-Event-Agent networks can complement TFMNs by providing a focus on actors, actions and consequences.
+Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “target event agent” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such as EmoAtlas can give general results about the overall context of biased perceptions, Target-Event-Agent networks can complement TFMNs by providing a focus on actors, actions and consequences.
 
 This framework only works for the English language.
 
@@ -22,26 +22,6 @@ This framework only works for the English language.
   <img src="tea_overview.jpg"/>
 </p>
 
-### Underlying SVO extraction
-
-The graph above is generated from the following extracted Target-Event-Agent triples:
-
-| Node 1 | TEA | Node 2 | TEA2 | Hypergraph | Semantic-Syntactic | svo_id | passive_approx | is_passive |
-|:---|:---|:---|:---|:---|---:|---:|---:|---:|
-| hospital | Agent | praise | Event | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
-| praise | Event | physician | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
-| praise | Event | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
-| physician | Target | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
-| mark | Agent | go | Event | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
-| rose | Agent | go | Event | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
-| go | Event | to park | Target | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
-| mark | Agent | rose | Agent | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
-| hacker | Agent | destroy | Event | [[('hacker', [])], ['destroy'], [('sensitive d... | 0 | 2 | 0 | 0 |
-| destroy | Event | sensitive database | Target | [[('hacker', [])], ['destroy'], [('sensitive d... | 0 | 2 | 0 | 0 |
-| doctor | Target | physician | Target | N/A | 1 | N/A | 0 | 0 |
-
-
----
 
 ## Methodological Revisions
 
@@ -68,7 +48,7 @@ To ensure accuracy, we validated the extraction logic against a **Gold Standard*
 - **Coreference Resolution**: Handles pronouns and other references using either `stanza` or `fastcoref`.
 - **Valence Analysis**: Determines the sentiment (positive, negative, neutral) of words using Vader.
 - **Graph Visualization**: Visualizes SVO relationships using NetworkX and Matplotlib.
-- **Hypergraphs extraction**: handles the exporting of the target-event-agent relationships as a pandas dataframe.
+- **Hypergraph extraction**: Handles the exporting of the target-event-agent relationships as a pandas dataframe.
 - **Semantic enrichment**: Synonyms are included in the SVO extraction and in the visualization.
 
 
@@ -96,7 +76,7 @@ For detailed documentation and examples, please refer to the folder 'Docs & Guid
 ```python
 import teanets as tea
 
-text = """The system detected an error. Finally, the loaf was sold."""
+text = """The physician and the doctor were praised by the hospital."""
 
 svo = tea.extract_svos_from_text(text)
 display(svo)
@@ -104,9 +84,11 @@ display(svo)
 
 | Node 1 | TEA | Node 2 | TEA2 | Hypergraph | Semantic-Syntactic | svo_id | passive_approx | is_passive |
 |:---|:---|:---|:---|:---|---:|---:|---:|---:|
-| system | Agent | detect | Event | [[('system', [])], ['detect'], [('error', [])]... | 0 | 0 | 0 | 0 |
-| detect | Event | error | Target | [[('system', [])], ['detect'], [('error', [])]... | 0 | 0 | 0 | 0 |
-| loaf | Agent | finally sell | Event | [[('loaf', [])], ['finally sell'], [], True, T... | 0 | 1 | 1 | 1 |
+| hospital | Agent | praise | Event | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| praise | Event | physician | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| praise | Event | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| physician | Target | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| doctor | Target | physician | Target | N/A | 1 | N/A | 0 | 0 |
 
 > The ``passive_approx`` column flags rows where the *Agent* slot does not contain
 > a true semantic agent but rather a patient placed there as best-available
@@ -131,6 +113,19 @@ A richer example showing multiple agents and verbs across sentences:
 text = """The journalist exposed the corruption. The mayor praised the volunteers and thanked the community."""
 
 svo = tea.extract_svos_from_text(text)
+display(svo)
+```
+
+| Node 1 | TEA | Node 2 | TEA2 | Hypergraph | Semantic-Syntactic | svo_id | passive_approx | is_passive |
+|:---|:---|:---|:---|:---|---:|---:|---:|---:|
+| journalist | Agent | expose | Event | [[('journalist', [])], ['expose'], [('corrupti... | 0 | 0 | 0 | 0 |
+| expose | Event | corruption | Target | [[('journalist', [])], ['expose'], [('corrupti... | 0 | 0 | 0 | 0 |
+| mayor | Agent | praise | Event | [[('mayor', [])], ['praise'], [('volunteer', [... | 0 | 1 | 0 | 0 |
+| praise | Event | volunteer | Target | [[('mayor', [])], ['praise'], [('volunteer', [... | 0 | 1 | 0 | 0 |
+| mayor | Agent | thank | Event | [[('mayor', [])], ['thank'], [('community', []... | 0 | 2 | 0 | 0 |
+| thank | Event | community | Target | [[('mayor', [])], ['thank'], [('community', []... | 0 | 2 | 0 | 0 |
+
+```python
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
@@ -145,7 +140,7 @@ A step-by-step tutorial for generating TEA network figures: [Generating TEA Figu
 
 You can access the Starting Guide here: [Starting Guide](https://github.com/MassimoStel/TEA_Networks/blob/main/Docs%20%26%20Guides/Starting%20Guide.ipynb)
 
-The starting guides features a more complete description of the package and an usage guide.
+The starting guide features a more complete description of the package and a usage guide.
 
 
 ### Google Colab Demo
