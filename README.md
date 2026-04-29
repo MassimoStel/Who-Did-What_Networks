@@ -26,18 +26,19 @@ This framework only works for the English language.
 
 The graph above is generated from the following extracted Target-Event-Agent triples:
 
-| Node 1   | TEA    | Node 2  | TEA2   | svo_id | passive_approx | is_passive |
-|:---------|:-------|:--------|:-------|-------:|---------------:|-----------:|
-| citizen  | Agent  | impress | Event  |      0 |              0 |          1 |
-| impress  | Event  | mayor   | Target |      0 |              0 |          1 |
-| mark     | Agent  | go      | Event  |      1 |              0 |          0 |
-| rose     | Agent  | go      | Event  |      1 |              0 |          0 |
-| go       | Event  | to park | Target |      1 |              0 |          0 |
-| mark     | Agent  | rose    | Agent  |      1 |              0 |          0 |
-| criminal | Agent  | attack  | Event  |      2 |              0 |          0 |
-| attack   | Event  | mark    | Target |      2 |              0 |          0 |
-| attack   | Event  | rose    | Target |      2 |              0 |          0 |
-| mark     | Target | rose    | Target |      2 |              0 |          0 |
+| Node 1 | TEA | Node 2 | TEA2 | Hypergraph | Semantic-Syntactic | svo_id | passive_approx | is_passive |
+|:---|:---|:---|:---|:---|---:|---:|---:|---:|
+| hospital | Agent | praise | Event | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| praise | Event | physician | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| praise | Event | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| physician | Target | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
+| mark | Agent | go | Event | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
+| rose | Agent | go | Event | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
+| go | Event | to park | Target | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
+| mark | Agent | rose | Agent | [[('mark', []), ('rose', [])], ['go'], [('to p... | 0 | 1 | 0 | 0 |
+| hacker | Agent | destroy | Event | [[('hacker', [])], ['destroy'], [('sensitive d... | 0 | 2 | 0 | 0 |
+| destroy | Event | sensitive database | Target | [[('hacker', [])], ['destroy'], [('sensitive d... | 0 | 2 | 0 | 0 |
+| doctor | Target | physician | Target | N/A | 1 | N/A | 0 | 0 |
 
 
 ---
@@ -95,18 +96,17 @@ For detailed documentation and examples, please refer to the folder 'Docs & Guid
 ```python
 import teanets as tea
 
-text = """The document was updated after the meeting ended. Finally, the feedback was integrated."""
+text = """The system detected an error. Finally, the loaf was sold."""
 
 svo = tea.extract_svos_from_text(text)
 display(svo)
 ```
 
-| Node 1    | TEA   | Node 2   | TEA2   | svo_id | passive_approx | is_passive |
-|:----------|:------|:---------|:-------|-------:|---------------:|-----------:|
-| document  | Agent | update   | Event  |      0 |              1 |          1 |
-| update    | Event | feedback | Target |      0 |              0 |          1 |
-| meeting   | Agent | end      | Event  |      1 |              1 |          1 |
-| integrate | Event | feedback | Target |      2 |              0 |          1 |
+| Node 1 | TEA | Node 2 | TEA2 | Hypergraph | Semantic-Syntactic | svo_id | passive_approx | is_passive |
+|:---|:---|:---|:---|:---|---:|---:|---:|---:|
+| system | Agent | detect | Event | [[('system', [])], ['detect'], [('error', [])]... | 0 | 0 | 0 | 0 |
+| detect | Event | error | Target | [[('system', [])], ['detect'], [('error', [])]... | 0 | 0 | 0 | 0 |
+| loaf | Agent | finally sell | Event | [[('loaf', [])], ['finally sell'], [], True, T... | 0 | 1 | 1 | 1 |
 
 > The ``passive_approx`` column flags rows where the *Agent* slot does not contain
 > a true semantic agent but rather a patient placed there as best-available
@@ -120,7 +120,7 @@ display(svo)
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
-  <img src="tea_quickstart.jpg" width="700"/>
+  <img src="tea_quickstart_passive.jpg" width="700"/>
 </p>
 
 ### Multi-sentence example
