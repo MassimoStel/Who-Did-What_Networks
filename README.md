@@ -95,7 +95,7 @@ For detailed documentation and examples, please refer to the folder 'Docs & Guid
 ```python
 import teanets as tea
 
-text = """The baker prepared a fresh sourdough after customers asked for healthier bread. Finally, the loaf was sold by the clerk."""
+text = """The document was updated after the meeting ended. Finally, the feedback was integrated."""
 
 svo = tea.extract_svos_from_text(text)
 display(svo)
@@ -103,12 +103,10 @@ display(svo)
 
 | Node 1    | TEA   | Node 2   | TEA2   | svo_id | passive_approx | is_passive |
 |:----------|:------|:---------|:-------|-------:|---------------:|-----------:|
-| baker     | Agent | prepare  | Event  |      0 |              0 |          0 |
-| prepare   | Event | sourdough | Target |      0 |              0 |          0 |
-| customers | Agent | ask      | Event  |      1 |              0 |          0 |
-| ask       | Event | bread    | Target |      1 |              0 |          0 |
-| clerk     | Agent | sell     | Event  |      2 |              0 |          1 |
-| sell      | Event | loaf     | Target |      2 |              0 |          1 |
+| document  | Agent | update   | Event  |      0 |              1 |          1 |
+| update    | Event | feedback | Target |      0 |              0 |          1 |
+| meeting   | Agent | end      | Event  |      1 |              1 |          1 |
+| integrate | Event | feedback | Target |      2 |              0 |          1 |
 
 > The ``passive_approx`` column flags rows where the *Agent* slot does not contain
 > a true semantic agent but rather a patient placed there as best-available
