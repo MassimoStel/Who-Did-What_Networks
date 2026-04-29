@@ -19,7 +19,7 @@ This framework only works for the English language.
 
 
 <p align="center">
-  <img src="TEA Sentence.jpg"/>
+  <img src="tea_overview.jpg"/>
 </p>
 
 ---
@@ -34,7 +34,8 @@ The TEA library correctly distinguishes between the semantic agent and the gramm
 | Sentence | Agent | Target |
 |:---------|:------------|:--------------|
 | *The patient was helped by the doctor.* | doctor | patient |
-| *The report was reviewed.* | report | None |
+| *Mark and Rose go to the park.* | Mark, Rose | park |
+| *The criminal attacked Mark and Rose.* | criminal | Mark, Rose |
 
 ### 2. SVO Extraction Validation
 To ensure accuracy, we validated the extraction logic against a **Gold Standard** of 100 exemplary sentences (`data/gold_standard_svo.csv`) covering active/passive voices, imperatives, and complex clauses.
@@ -76,18 +77,18 @@ For detailed documentation and examples, please refer to the folder 'Docs & Guid
 ```python
 import teanets as tea
 
-text = """Mark and Rose go to the park."""
+text = """The scientist discovered a new cure and published the results."""
 
 svo = tea.extract_svos_from_text(text)
 display(svo)
 ```
 
-| Node 1   | TEA   | Node 2   | TEA2   | Hypergraph                                                |   Semantic-Syntactic |   svo_id |   passive_approx |
-|:---------|:------|:---------|:-------|:----------------------------------------------------------|---------------------:|---------:|-----------------:|
-| Mark     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
-| Rose     | Agent   | go       | Event    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
-| go       | Event   | to park  | Target   | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
-| Mark     | Agent   | Rose     | Agent    | [[('Mark', []), ('Rose', [])], ['go'], [('to park', [])]] |                    0 |        0 |                0 |
+| Node 1    | TEA   | Node 2   | TEA2   | svo_id | passive_approx | is_passive |
+|:----------|:------|:---------|:-------|-------:|---------------:|-----------:|
+| scientist | Agent | discover | Event  |      0 |              0 |          0 |
+| discover  | Event | new cure | Target |      0 |              0 |          0 |
+| scientist | Agent | publish  | Event  |      1 |              0 |          0 |
+| publish   | Event | result   | Target |      1 |              0 |          0 |
 
 > The ``passive_approx`` column flags rows where the *Agent* slot does not contain
 > a true semantic agent but rather a patient placed there as best-available
@@ -97,12 +98,43 @@ display(svo)
 > analytics and plotting helpers (treated as ``0``).
 
 
-```
+```python
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
-  <img src="TEAMarkRose.jpg" width="700"/>
+  <img src="tea_quickstart.jpg" width="700"/>
 </p>
+
+### Multi-sentence example
+
+A richer example showing multiple agents and verbs across sentences:
+
+```python
+text = """The journalist exposed the corruption. The mayor praised the volunteers and thanked the community."""
+
+svo = tea.extract_svos_from_text(text)
+display(svo)
+```
+
+| Node 1     | TEA   | Node 2     | TEA2   | svo_id | passive_approx | is_passive |
+|:-----------|:------|:-----------|:-------|-------:|---------------:|-----------:|
+| journalist | Agent | expose     | Event  |      0 |              0 |          0 |
+| expose     | Event | corruption | Target |      0 |              0 |          0 |
+| mayor      | Agent | praise     | Event  |      1 |              0 |          0 |
+| praise     | Event | volunteer  | Target |      1 |              0 |          0 |
+| mayor      | Agent | thank      | Event  |      2 |              0 |          0 |
+| thank      | Event | community  | Target |      2 |              0 |          0 |
+
+```python
+tea.plot_svo_graph(svo)
+```
+<p align="center">
+  <img src="tea_multisentence.jpg" width="700"/>
+</p>
+
+### Generating TEA Figures
+
+A step-by-step tutorial for generating TEA network figures: [Generating TEA Figures](https://github.com/MassimoStel/TEA_Networks/blob/main/Docs%20%26%20Guides/Generating_TEA_Figures.ipynb)
 
 ### Starting Guide
 
@@ -125,7 +157,10 @@ Franchini, S., Carrillo, A., De Duro, E. S., Improta, R., Ardebili, A. A., & Ste
 - *Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.*
 - *Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).*
 
+## Acknowledgments
+
+This work is part of the PENSO project, supported by the Ministero dell'Università e della Ricerca (MUR) according to Decreto N. 23178 of 10 dicembre 2024 — Bando FIS 2. The authors acknowledge support from CALCOLO, funded by Fondazione VRT, for support with the computational infrastructure simulating LLMs.
+
 ## License
 
 This project is licensed under the BSD 3-Clause License.
-
