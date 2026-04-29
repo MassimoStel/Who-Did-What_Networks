@@ -28,12 +28,12 @@ This framework only works for the English language.
 
 ### 1. Passive Voice Handling
 The TEA library correctly distinguishes between the semantic agent and the grammatical subject in passive constructions. 
-- **Passive WITH Agent** (*"The patient was helped by the doctor"*): The agent (*doctor*) is correctly identified as the **Agent**, while the patient (*patient*) is mapped to the **Target**.
+- **Passive WITH Agent** (*"The mayor was impressed by the citizen"*): The agent (*citizen*) is correctly identified as the **Agent**, while the mayor (*mayor*) is mapped to the **Target**.
 - **Passive WITHOUT Agent** (*"The window was broken"*): If no agent is present, the patient remains in the **Agent** position as the best available approximation.
 
 | Sentence | Agent | Target |
 |:---------|:------------|:--------------|
-| *The patient was helped by the doctor.* | doctor | patient |
+| *The mayor was impressed by the citizen.* | citizen | mayor |
 | *Mark and Rose go to the park.* | Mark, Rose | park |
 | *The criminal attacked Mark and Rose.* | criminal | Mark, Rose |
 
