@@ -90,14 +90,6 @@ display(svo)
 | physician | Target | doctor | Target | [[('hospital', [])], ['praise'], [('physician'... | 0 | 0 | 0 | 1 |
 | doctor | Target | physician | Target | N/A | 1 | N/A | 0 | 0 |
 
-> The ``passive_approx`` column flags rows where the *Agent* slot does not contain
-> a true semantic agent but rather a patient placed there as best-available
-> approximation (passive without by-phrase, e.g. *"the report was reviewed"*).
-> Set to ``1`` only for those Agent–Event and Agent–Agent edges; always ``0``
-> elsewhere. Older outputs without this column are still fully supported by the
-> analytics and plotting helpers (treated as ``0``).
-
-
 ```python
 tea.plot_svo_graph(svo)
 ```
@@ -110,7 +102,7 @@ tea.plot_svo_graph(svo)
 A richer example showing multiple agents and verbs across sentences:
 
 ```python
-text = """The journalist exposed the corruption. The mayor praised the volunteers and thanked the community."""
+text = """The system detected an error. Finally, the loaf was sold. The mayor praised the volunteers and thanked the community."""
 
 svo = tea.extract_svos_from_text(text)
 display(svo)
@@ -118,12 +110,20 @@ display(svo)
 
 | Node 1 | TEA | Node 2 | TEA2 | Hypergraph | Semantic-Syntactic | svo_id | passive_approx | is_passive |
 |:---|:---|:---|:---|:---|---:|---:|---:|---:|
-| journalist | Agent | expose | Event | [[('journalist', [])], ['expose'], [('corrupti... | 0 | 0 | 0 | 0 |
-| expose | Event | corruption | Target | [[('journalist', [])], ['expose'], [('corrupti... | 0 | 0 | 0 | 0 |
-| mayor | Agent | praise | Event | [[('mayor', [])], ['praise'], [('volunteer', [... | 0 | 1 | 0 | 0 |
-| praise | Event | volunteer | Target | [[('mayor', [])], ['praise'], [('volunteer', [... | 0 | 1 | 0 | 0 |
-| mayor | Agent | thank | Event | [[('mayor', [])], ['thank'], [('community', []... | 0 | 2 | 0 | 0 |
-| thank | Event | community | Target | [[('mayor', [])], ['thank'], [('community', []... | 0 | 2 | 0 | 0 |
+| system | Agent | detect | Event | [[('system', [])], ['detect'], [('error', [])]... | 0 | 0 | 0 | 0 |
+| detect | Event | error | Target | [[('system', [])], ['detect'], [('error', [])]... | 0 | 0 | 0 | 0 |
+| loaf | Agent | finally sell | Event | [[('loaf', [])], ['finally sell'], [], True, T... | 0 | 1 | 1 | 1 |
+| mayor | Agent | praise | Event | [[('mayor', [])], ['praise'], [('volunteer', [... | 0 | 2 | 0 | 0 |
+| praise | Event | volunteer | Target | [[('mayor', [])], ['praise'], [('volunteer', [... | 0 | 2 | 0 | 0 |
+| mayor | Agent | thank | Event | [[('mayor', [])], ['thank'], [('community', []... | 0 | 3 | 0 | 0 |
+| thank | Event | community | Target | [[('mayor', [])], ['thank'], [('community', []... | 0 | 3 | 0 | 0 |
+
+> The ``passive_approx`` column flags rows where the *Agent* slot does not contain
+> a true semantic agent but rather a patient placed there as best-available
+> approximation (passive without by-phrase, e.g. *"the report was reviewed"*).
+> Set to ``1`` only for those Agent–Event and Agent–Agent edges; always ``0``
+> elsewhere. Older outputs without this column are still fully supported by the
+> analytics and plotting helpers (treated as ``0``).
 
 ```python
 tea.plot_svo_graph(svo)
