@@ -22,6 +22,24 @@ This framework only works for the English language.
   <img src="tea_overview.jpg"/>
 </p>
 
+### Underlying SVO extraction
+
+The graph above is generated from the following extracted Target-Event-Agent triples:
+
+| Node 1   | TEA    | Node 2  | TEA2   | svo_id | passive_approx | is_passive |
+|:---------|:-------|:--------|:-------|-------:|---------------:|-----------:|
+| citizen  | Agent  | impress | Event  |      0 |              0 |          1 |
+| impress  | Event  | mayor   | Target |      0 |              0 |          1 |
+| mark     | Agent  | go      | Event  |      1 |              0 |          0 |
+| rose     | Agent  | go      | Event  |      1 |              0 |          0 |
+| go       | Event  | to park | Target |      1 |              0 |          0 |
+| mark     | Agent  | rose    | Agent  |      1 |              0 |          0 |
+| criminal | Agent  | attack  | Event  |      2 |              0 |          0 |
+| attack   | Event  | mark    | Target |      2 |              0 |          0 |
+| attack   | Event  | rose    | Target |      2 |              0 |          0 |
+| mark     | Target | rose    | Target |      2 |              0 |          0 |
+
+
 ---
 
 ## Methodological Revisions
@@ -80,25 +98,6 @@ import teanets as tea
 text = """The scientist discovered a new cure and published the results."""
 
 svo = tea.extract_svos_from_text(text)
-display(svo)
-```
-
-| Node 1    | TEA   | Node 2   | TEA2   | svo_id | passive_approx | is_passive |
-|:----------|:------|:---------|:-------|-------:|---------------:|-----------:|
-| scientist | Agent | discover | Event  |      0 |              0 |          0 |
-| discover  | Event | new cure | Target |      0 |              0 |          0 |
-| scientist | Agent | publish  | Event  |      1 |              0 |          0 |
-| publish   | Event | result   | Target |      1 |              0 |          0 |
-
-> The ``passive_approx`` column flags rows where the *Agent* slot does not contain
-> a true semantic agent but rather a patient placed there as best-available
-> approximation (passive without by-phrase, e.g. *"the report was reviewed"*).
-> Set to ``1`` only for those Agent–Event and Agent–Agent edges; always ``0``
-> elsewhere. Older outputs without this column are still fully supported by the
-> analytics and plotting helpers (treated as ``0``).
-
-
-```python
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
