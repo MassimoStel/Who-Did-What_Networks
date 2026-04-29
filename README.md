@@ -95,9 +95,30 @@ For detailed documentation and examples, please refer to the folder 'Docs & Guid
 ```python
 import teanets as tea
 
-text = """The scientist discovered a new cure and published the results."""
+text = """The baker prepared a fresh sourdough after customers asked for healthier bread. Finally, the loaf was sold by the clerk."""
 
 svo = tea.extract_svos_from_text(text)
+display(svo)
+```
+
+| Node 1    | TEA   | Node 2   | TEA2   | svo_id | passive_approx | is_passive |
+|:----------|:------|:---------|:-------|-------:|---------------:|-----------:|
+| baker     | Agent | prepare  | Event  |      0 |              0 |          0 |
+| prepare   | Event | sourdough | Target |      0 |              0 |          0 |
+| customers | Agent | ask      | Event  |      1 |              0 |          0 |
+| ask       | Event | bread    | Target |      1 |              0 |          0 |
+| clerk     | Agent | sell     | Event  |      2 |              0 |          1 |
+| sell      | Event | loaf     | Target |      2 |              0 |          1 |
+
+> The ``passive_approx`` column flags rows where the *Agent* slot does not contain
+> a true semantic agent but rather a patient placed there as best-available
+> approximation (passive without by-phrase, e.g. *"the report was reviewed"*).
+> Set to ``1`` only for those Agent–Event and Agent–Agent edges; always ``0``
+> elsewhere. Older outputs without this column are still fully supported by the
+> analytics and plotting helpers (treated as ``0``).
+
+
+```python
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
@@ -112,19 +133,6 @@ A richer example showing multiple agents and verbs across sentences:
 text = """The journalist exposed the corruption. The mayor praised the volunteers and thanked the community."""
 
 svo = tea.extract_svos_from_text(text)
-display(svo)
-```
-
-| Node 1     | TEA   | Node 2     | TEA2   | svo_id | passive_approx | is_passive |
-|:-----------|:------|:-----------|:-------|-------:|---------------:|-----------:|
-| journalist | Agent | expose     | Event  |      0 |              0 |          0 |
-| expose     | Event | corruption | Target |      0 |              0 |          0 |
-| mayor      | Agent | praise     | Event  |      1 |              0 |          0 |
-| praise     | Event | volunteer  | Target |      1 |              0 |          0 |
-| mayor      | Agent | thank      | Event  |      2 |              0 |          0 |
-| thank      | Event | community  | Target |      2 |              0 |          0 |
-
-```python
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
