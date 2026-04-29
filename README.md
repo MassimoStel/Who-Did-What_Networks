@@ -27,14 +27,14 @@ This framework only works for the English language.
 
 ### 1. Passive Voice Handling
 The TEA library correctly distinguishes between the semantic agent and the grammatical subject in passive constructions. 
-- **Passive WITH Agent** (*"The mayor was impressed by the citizen"*): The agent (*citizen*) is correctly identified as the **Agent**, while the mayor (*mayor*) is mapped to the **Target**.
+- **Passive WITH Agent** (*"The physician and the doctor were praised by the hospital."*): The agent (*hospital*) is correctly identified as the **Agent**, while the physician and doctor (*physician*, *doctor*) are mapped to the **Target**.
 - **Passive WITHOUT Agent** (*"The window was broken"*): If no agent is present, the patient remains in the **Agent** position as the best available approximation.
 
 | Sentence | Agent | Target |
 |:---------|:------------|:--------------|
-| *The mayor was impressed by the citizen.* | citizen | mayor |
+| *The physician and the doctor were praised by the hospital.* | hospital | physician, doctor |
 | *Mark and Rose go to the park.* | Mark, Rose | park |
-| *The criminal attacked Mark and Rose.* | criminal | Mark, Rose |
+| *The hacker destroyed the sensitive database.* | hacker | sensitive database |
 
 ### 2. SVO Extraction Validation
 To ensure accuracy, we validated the extraction logic against a **Gold Standard** of 100 exemplary sentences (`data/gold_standard_svo.csv`) covering active/passive voices, imperatives, and complex clauses.
@@ -129,7 +129,7 @@ display(svo)
 tea.plot_svo_graph(svo)
 ```
 <p align="center">
-  <img src="tea_multisentence.jpg" width="700"/>
+  <img src="tea_multisentence.jpg?v=2" width="700"/>
 </p>
 
 ### Generating TEA Figures
