@@ -1,8 +1,20 @@
-# Target-Event-Agent Networks
+<p align="center">
+  <img src="./logofis.png" alt="FIS logo" height="180">
+  <img src="./PENSO_Logo.png" alt="PENSO logo" height="240">
+</p>
 
 <p align="center">
-  <img src="tea logo.png" alt="TEA" width="300"/>
+  FIS2 Project PENSO - Funded by MUR - CogNosco Lab, University of Trento
 </p>
+
+<h1 align="center">
+  Target-Event-Agent Networks in NLP for understanding "who" "did" "what" in narratives
+</h1>
+
+<p align="center">
+  🤖 LLMs · 🧮 NLP · 📊 Library 🕸️ Complex Networks 📚 Text Analysis 
+</p>
+
 
 A Python library that implements a novel framework to measure bias through its actors, actions and consequences in English.
 
@@ -12,6 +24,11 @@ Target-Event-Agent cognitive networks are a novel framework to measure bias thro
 - **Agent**: Subjects/actors
 - **Event**: Verbs/actions
 - **Target**: Objects/consequences
+
+
+<p align="center">
+  <img src="tea logo.png" alt="TEA" width="200"/>
+</p>
 
 Part-of-speech tagging is determined by an AI reading each sentence in a text (spaCy). Inter-layer connections are established with a rule-based approach applied on the syntactic parsing of an AI (spaCy). Intra-layer connections are semantic and established only if two words are synonyms (e.g. father and dad), highlighted in green. Like in textual forma mentis networks (Stella, PeerJ Comp. Sci, 2020), individual concepts are labelled as “positive” (cyan), “negative” (red) and “neutral” (gray) according to Vader Sentiment Analysis. Inter-layer paths indicate “target event agent” - i.e. which actions and which consequences were portrayed by specific agents in texts. Whereas tools such as EmoAtlas can give general results about the overall context of biased perceptions, Target-Event-Agent networks can complement TFMNs by providing a focus on actors, actions and consequences.
 
@@ -157,9 +174,17 @@ Franchini, S., Carrillo, A., De Duro, E. S., Improta, R., Ardebili, A. A., & Ste
 - *Stella, M. (2020). Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media. PeerJ Computer Science, 6, e295.*
 - *Hutto, C., & Gilbert, E. (2014, May). Vader: A parsimonious rule-based model for sentiment analysis of social media text. In Proceedings of the international AAAI conference on web and social media (Vol. 8, No. 1, pp. 216-225).*
 
-## Acknowledgments
+## Created within CogNosco Lab - Check our Research: https://cognosco.dipsco.unitn.it/
+
+<p align="center">
+  <img src="./NewLogoCognosco.png" alt="FIS logo" height="260">
+  <img src="./PENSO_Logo.png" alt="PENSO logo" height="260">
+</p>
+
+## Acknowledgements
 
 This work is part of the PENSO project, supported by the Ministero dell'Università e della Ricerca (MUR) according to Decreto N. 23178 of 10 dicembre 2024 — Bando FIS 2. The authors acknowledge support from CALCOLO, funded by Fondazione VRT, for support with the computational infrastructure simulating LLMs.
+
 
 ## License
 
